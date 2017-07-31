@@ -1,8 +1,0 @@
-name = CKEditor Mentions
-description = CKEditor plugin for user mentioning and inserting.
-package = User interface
-core = 7.x
-
-dependencies[] = realname
-dependencies[] = views
-
