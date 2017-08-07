@@ -25,7 +25,9 @@ function ckeditor_mentions_editor_js_settings_alter(&$settings) {
           else {
             $attributes[] = 'data-mention';
           }
-          $settings['editor']['formats'][$format]['editorSettings']['allowedContent']['a']['attributes'] = implode(',',$attributes);
+          if (is_array($settings['editor']['formats'][$format]['editorSettings']['allowedContent'])) {
+            $settings['editor']['formats'][$format]['editorSettings']['allowedContent']['a']['attributes'] = implode(',', $attributes);
+          }
         }
       }
     }
