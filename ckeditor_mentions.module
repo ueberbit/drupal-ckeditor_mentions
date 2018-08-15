@@ -5,6 +5,9 @@
  * Custom code implementations for Ckeditor mentions.
  */
 
+use Drupal\ckeditor_mentions\CKEditorMentionEvent;
+use Drupal\Core\Entity\EntityInterface;
+
 /**
  * Implements hook_editor_js_settings_alter().
  */
@@ -32,4 +35,20 @@ function ckeditor_mentions_editor_js_settings_alter(&$settings) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function ckeditor_mentions_entity_update(EntityInterface $entity) {
+  $mentions = \Drupal::getContainer()->get('ckeditor_mentions.mention_event_dispatcher');
+  $mentions->dispatchMentionEvent($entity, CKEditorMentionEvent::MENTION_SUBSEQUENT);
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function ckeditor_mentions_entity_insert(EntityInterface $entity) {
+  $mentions = \Drupal::getContainer()->get('ckeditor_mentions.mention_event_dispatcher');
+  $mentions->dispatchMentionEvent($entity, CKEditorMentionEvent::MENTION_FIRST);
 }
