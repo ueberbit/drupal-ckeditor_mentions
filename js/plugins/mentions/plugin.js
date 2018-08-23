@@ -100,6 +100,7 @@
                     })
                         .done(function (data) {
                             var content = $.parseJSON(data);
+                            var href;
 
                             if (content.data && content.result === 'success') {
 
@@ -118,11 +119,16 @@
                                         }
                                     }
 
-                                    links += '<a href="/user/' + content.data[key].uid + '" data-mention="' + content.data[key].uid + '">' + content.data[key].name + '</a>';
+                                    if (/^\d+$/.test(content.data[key].uid)) {
+                                        href = '/user/' + content.data[key].uid;
+                                    }
+                                    else {
+                                        href = '#' + content.data[key].uid;
+                                    }
+                                    links += '<a href="' + href + '" data-mention="' + content.data[key].uid + '">' + content.data[key].name + '</a>';
                                     links += '</li>';
                                 }
                                 links += '</ul>';
-
                                 $('<div class="mention-wrapper"><div class="mention-suggestions">' + links + '</div></div>').insertAfter(parentElement);
                                 $('.mention-wrapper a').bind('click', function () {
 

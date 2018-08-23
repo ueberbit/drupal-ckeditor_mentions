@@ -2,15 +2,50 @@
 
 namespace Drupal\ckeditor_mentions\Controller;
 
+use Drupal\ckeditor_mentions\CKEditorMentionSuggestionEvent;
 use Drupal\Core\Controller\ControllerBase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Database\Database;
 use Drupal\image\Entity\ImageStyle;
 
 class CKMentionsController extends ControllerBase {
 
-  public function getRealNameMatch($match = '', Request $request) {
+  /**
+   * The Event Dispatcher.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('event_dispatcher')
+    );
+  }
+
+  /**
+   * CKMentionsController constructor.
+   *
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+   *   The Event dispatcher service.
+   */
+  public function __construct(EventDispatcherInterface $eventDispatcher) {
+    $this->eventDispatcher = $eventDispatcher;
+  }
+
+  /**
+   * Return a list of suggestions based in the keyword provided by the user.
+   *
+   * @param string $match
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   */
+  public function getRealNameMatch($match = '') {
 
     $message = ['result' => 'fail'];
 
@@ -29,7 +64,7 @@ class CKMentionsController extends ControllerBase {
       $query->leftJoin('file_managed', 'fm', 'fm.fid = up.user_picture_target_id');
       $query->fields('rn', ['uid', 'realname']);
       $query->fields('fm', ['uri']);
-      $query->condition('rn.realname', '%'.$query->escapeLike($str) . '%', 'LIKE');
+      $query->condition('rn.realname', '%' . $query->escapeLike($str) . '%', 'LIKE');
       $query->isNotNull('rn.realname');
       $query->condition('ud.status', 1);
 
@@ -42,7 +77,7 @@ class CKMentionsController extends ControllerBase {
 
       $matches = [];
 
-      foreach($results as $result) {
+      foreach ($results as $result) {
         $url = '';
 
         if ($result->uri) {
@@ -51,8 +86,13 @@ class CKMentionsController extends ControllerBase {
         $matches[] = [
           'uid' => $result->uid,
           'name' => $result->realname,
-          'image' => $url];
+          'image' => $url,
+        ];
       }
+
+      $suggestion_event = new CKEditorMentionSuggestionEvent($match);
+      $suggestion_event = $this->eventDispatcher->dispatch('ckeditor_mentions.suggestion', $suggestion_event);
+      $matches = array_merge($suggestion_event->getSuggestions(), $matches);
 
       $message = ['result' => 'success', 'data' => $matches];
 

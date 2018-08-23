@@ -181,6 +181,12 @@ class MentionEventDispatcher {
       $result = $result->fetch();
       $realname = $result->realname;
 
+      // Third party modules can send custom suggestions via an event, add
+      // those even if there aren't users with that uid.
+      if ($realname == 'Anonymous') {
+        $realname = $mentioned_user_id;
+      }
+
       // Check if the realname is used inside the link.
       if ($link_text !== $realname) {
         continue;
@@ -188,6 +194,7 @@ class MentionEventDispatcher {
 
       $users_mentioned[$mentioned_user_id] = $mentioned_user_id;
     }
+
     return $users_mentioned;
   }
 
