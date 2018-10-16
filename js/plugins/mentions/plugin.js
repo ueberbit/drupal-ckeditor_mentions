@@ -38,16 +38,17 @@
             }
 
             editor.on("key", function (event) {
-                var key = event.data.domEvent.$.key;
-                checkMentions(event.editor, key);
+
+                var charCode = event.data.keyCode;
+                checkMentions(event.editor, charCode);
 
             }, editor, null, 50);
 
 
-            function checkMentions(editorInstance, key) {
+            function checkMentions(editorInstance, charCode) {
 
                 // stop/ignore input when certain character codes occur
-                if (breakCheck(key)) {
+                if (breakCheck(charCode)) {
                     editorInstance.replacementChars = [];
                     editorInstance.observe = 0;
                     clearTimeout(editorInstance.timeout_id);
@@ -58,14 +59,14 @@
 
                     if (editorInstance.observe) {
 
-                        if (key === 'Backspace') {
+                        if (charCode === 8) {
                             // if backspacing during a selection pop the last item in the array out
                             editorInstance.replacementChars.pop();
                         }
-                        else if (key.match(/^[0-9a-zA-Z]$/)) {
+                        else if (String.fromCharCode(charCode).match(/^[0-9a-zA-Z]+$/)) {
                             // keep weird characters out of list (spaces, line breaks, shift key, etc)
                             // pushes characters into array only after check for '@' so @ is not part of query
-                            editorInstance.replacementChars.push(key);
+                            editorInstance.replacementChars.push(String.fromCharCode(charCode));
                         }
 
                         // only ping JSON callback when there are a certain number of characters in array
@@ -75,7 +76,7 @@
 
                     }
 
-                    if ((key === '@') && editorInstance.observe === 0) {
+                    if ((String.fromCharCode(charCode) === '@' || charCode === 2228274 || charCode === 64) && editorInstance.observe === 0) {
                         editorInstance.observe = 1;
                     }
                 }
@@ -160,10 +161,18 @@
                 $('.mention-wrapper').remove();
             }
 
-            function breakCheck(key) {
-                var special = ['Enter', 'ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown', 'Delete', 'Home'];
+            function breakCheck(charcode) {
+                // 13 = enter
+                // 32 = break space
+                // 37 = left key
+                // 38 = up key
+                // 39 = right key
+                // 40 = down key
+                // 46 = delete
+                // 91 = home/end (?)
+                var special = [13, 37, 32, 38, 39, 40, 46, 91];
                 for (var i = 0; i < special.length; i++) {
-                    if (special[i] === key) {
+                    if (special[i] === charcode) {
                         return true;
                     }
                 }
