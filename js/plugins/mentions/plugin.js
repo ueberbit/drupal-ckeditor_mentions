@@ -40,13 +40,13 @@
       }
 
       editor.on("key", function (event) {
-        var charCode = event.data.keyCode;
-        checkMentions(event.editor, charCode);
+        var key = event.data.domEvent.$.key;
+        checkMentions(event.editor, key);
       }, editor, null, 50);
 
-      function checkMentions(editorInstance, charCode) {
+      function checkMentions(editorInstance, key) {
         // Stop/ignore input when certain character codes occur.
-        if (breakCheck(charCode)) {
+        if (breakCheck(key)) {
           editorInstance.replacementChars = [];
           editorInstance.observe = 0;
           clearTimeout(editorInstance.timeout_id);
@@ -54,14 +54,14 @@
         }
         else {
           if (editorInstance.observe) {
-            if (charCode === 8) {
+            if (key === 'Backspace') {
               // If backspacing during a selection pop the last item in the array out.
               editorInstance.replacementChars.pop();
             }
-            else if (String.fromCharCode(charCode).match(/^[0-9a-zA-Z]+$/)) {
+            else if (key.match(/^[0-9a-zA-Z]$/)) {
               // Keep weird characters out of list (spaces, line breaks, shift key, etc)
               // pushes characters into array only after check for '@' so @ is not part of query.
-              editorInstance.replacementChars.push(String.fromCharCode(charCode));
+              editorInstance.replacementChars.push(key);
             }
 
             // Only ping JSON callback when there are a certain number of characters in array.
@@ -69,7 +69,7 @@
               editorInstance.timeout_id = setTimeout(timeoutCallback, editorInstance.timeout_delay, [editorInstance]);
             }
           }
-          if ((String.fromCharCode(charCode) === '@' || charCode === 2228274 || charCode === 64) && editorInstance.observe === 0) {
+          if (key === '@' && editorInstance.observe === 0) {
             editorInstance.observe = 1;
           }
         }
@@ -148,18 +148,10 @@
           $('.mention-wrapper').remove();
       }
 
-      function breakCheck(charcode) {
-        // 13 = enter
-        // 32 = break space
-        // 37 = left key
-        // 38 = up key
-        // 39 = right key
-        // 40 = down key
-        // 46 = delete
-        // 91 = home/end (?)
-        var special = [13, 37, 32, 38, 39, 40, 46, 91];
+      function breakCheck(key) {
+        var special = ['Enter', 'ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown', 'Delete', 'Home'];
         for (var i = 0; i < special.length; i++) {
-          if (special[i] === charcode) {
+          if (special[i] === key) {
             return true;
           }
         }
