@@ -72,4 +72,3 @@ class MentionPlugin extends JavascriptTestBase {
   }
 
 }
-
