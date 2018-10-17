@@ -33,7 +33,6 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
     return [];
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -44,8 +43,8 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
       'mentions' => [
         'image' => !empty($settings['plugins']['mentions']['image']) ? $settings['plugins']['mentions']['image'] : FALSE,
         'charcount' => !empty($settings['plugins']['mentions']['charcount']) ? $settings['plugins']['mentions']['charcount'] : 3,
-        'timeout' => !empty($settings['plugins']['mentions']['timeout']) ? $settings['plugins']['mentions']['timeout'] : 500
-      ]
+        'timeout' => !empty($settings['plugins']['mentions']['timeout']) ? $settings['plugins']['mentions']['timeout'] : 500,
+      ],
     ];
   }
 
@@ -69,7 +68,7 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
    */
   public function getCssFiles(Editor $editor) {
     return [
-      drupal_get_path('module', 'ckeditor_mentions') . '/css/plugins/mentions/ckeditor_mentions.css'
+      drupal_get_path('module', 'ckeditor_mentions') . '/css/plugins/mentions/ckeditor_mentions.css',
     ];
   }
 
@@ -88,31 +87,31 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
   public function settingsForm(array $form, FormStateInterface $form_state, Editor $editor) {
     $settings = $editor->getSettings();
 
-    $form['enable'] = array(
+    $form['enable'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enable Mentions'),
-      '#default_value' => !empty($settings['plugins']['mentions']['enable']) ? $settings['plugins']['mentions']['enable'] : false,
-    );
+      '#default_value' => !empty($settings['plugins']['mentions']['enable']) ? $settings['plugins']['mentions']['enable'] : FALSE,
+    ];
 
-    $form['image'] = array(
+    $form['image'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enable User Icon'),
-      '#default_value' => !empty($settings['plugins']['mentions']['image']) ? $settings['plugins']['mentions']['image'] : false,
-    );
+      '#default_value' => !empty($settings['plugins']['mentions']['image']) ? $settings['plugins']['mentions']['image'] : FALSE,
+    ];
 
-    $form['charcount'] = array(
+    $form['charcount'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Character Count'),
       '#description' => $this->t('Enter minimum number of characters that must be typed to trigger mention match.'),
       '#default_value' => !empty($settings['plugins']['mentions']['charcount']) ? $settings['plugins']['mentions']['charcount'] : 3,
-    );
+    ];
 
-    $form['timeout'] = array(
+    $form['timeout'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Timeout (milliseconds)'),
       '#description' => $this->t('Enter time in milliseconds for mentions script to stop checking for matches.'),
       '#default_value' => !empty($settings['plugins']['mentions']['timeout']) ? $settings['plugins']['mentions']['timeout'] : 500,
-    );
+    ];
 
     $form['charcount']['#element_validate'][] = [$this, 'isPositiveNumber'];
     $form['timeout']['#element_validate'][] = [$this, 'isPositiveNumber'];
@@ -121,12 +120,17 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
   }
 
   /**
+   * Check if value is positive.
+   *
    * @param array $element
+   *   The Form element.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The FormState Object.
    */
   public function isPositiveNumber(array $element, FormStateInterface $form_state) {
     if (!is_numeric($element['#value']) || $element['#value'] < 1) {
       $form_state->setError($element, 'Value must be a positive integer.');
     }
   }
+
 }

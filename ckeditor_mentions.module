@@ -22,7 +22,7 @@ function ckeditor_mentions_editor_js_settings_alter(&$settings) {
         if (in_array('mentions', $plugins)) {
           $attributes = [];
           if (isset($data['editorSettings']['allowedContent']['a']['attributes'])) {
-            $attributes = explode(',',$data['editorSettings']['allowedContent']['a']['attributes']);
+            $attributes = explode(',', $data['editorSettings']['allowedContent']['a']['attributes']);
             $attributes[] = 'data-mention';
           }
           else {

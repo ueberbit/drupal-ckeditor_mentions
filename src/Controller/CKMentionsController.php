@@ -10,6 +10,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Drupal\Core\Database\Database;
 use Drupal\image\Entity\ImageStyle;
 
+/**
+ * Route callback for matches.
+ */
 class CKMentionsController extends ControllerBase {
 
   /**
@@ -42,20 +45,19 @@ class CKMentionsController extends ControllerBase {
    * Return a list of suggestions based in the keyword provided by the user.
    *
    * @param string $match
+   *   Match value.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   Json of matches.
    */
   public function getRealNameMatch($match = '') {
-
     $message = ['result' => 'fail'];
 
     $str = trim(str_replace('@', '', $match));
     $str = strip_tags($str);
 
     if ($str) {
-
       $uid = \Drupal::currentUser()->id();
-
       $database = Database::getConnection('default');
 
       $query = $database->select('realname', 'rn');
@@ -74,12 +76,10 @@ class CKMentionsController extends ControllerBase {
       }
 
       $results = $query->execute();
-
       $matches = [];
 
       foreach ($results as $result) {
         $url = '';
-
         if ($result->uri) {
           $url = ImageStyle::load('mentions_icon')->buildUrl($result->uri);
         }
@@ -93,13 +93,10 @@ class CKMentionsController extends ControllerBase {
       $suggestion_event = new CKEditorMentionSuggestionEvent($match);
       $suggestion_event = $this->eventDispatcher->dispatch('ckeditor_mentions.suggestion', $suggestion_event);
       $matches = array_merge($suggestion_event->getSuggestions(), $matches);
-
       $message = ['result' => 'success', 'data' => $matches];
-
     }
 
     return new JsonResponse($message);
-
   }
 
 }
