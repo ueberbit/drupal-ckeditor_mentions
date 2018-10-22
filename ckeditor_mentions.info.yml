@@ -5,6 +5,6 @@ package: CKEditor
 core: '8.x'
 
 dependencies:
-  - ckeditor
-  - image
-  - realname
+  - drupal:ckeditor
+  - drupal:image
+  - realname:realname
