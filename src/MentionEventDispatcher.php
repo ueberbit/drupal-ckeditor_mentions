@@ -168,6 +168,14 @@ class MentionEventDispatcher {
         continue;
       }
 
+      // Third party modules can send custom suggestion via an event, if the
+      // user_id is not numeric then let it pass as it was sent so it can
+      // be handled by the third party module.
+      if (!is_numeric($mentioned_user_id)) {
+        $users_mentioned[$mentioned_user_id] = $mentioned_user_id;
+        continue;
+      }
+
       $query = $database->select('realname', 'rn');
       $query->fields('rn', ['realname']);
       $query->condition('rn.uid', $mentioned_user_id);
@@ -180,12 +188,6 @@ class MentionEventDispatcher {
       $result = $query->execute();
       $result = $result->fetch();
       $realname = $result->realname;
-
-      // Third party modules can send custom suggestions via an event, add
-      // those even if there aren't users with that uid.
-      if ($realname == 'Anonymous') {
-        $realname = $mentioned_user_id;
-      }
 
       // Check if the realname is used inside the link.
       if ($link_text !== $realname) {
