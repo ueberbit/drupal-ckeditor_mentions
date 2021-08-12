@@ -1,8 +1,10 @@
 ckeditor_mentions.ajax_callback:
-  path: '/ckeditor-mentions/ajax/{match}'
+  path: '/ckeditor-mentions/ajax/{plugin_id}/{match}'
   defaults:
-    _controller: 'Drupal\ckeditor_mentions\Controller\CKMentionsController::getRealNameMatch'
+    _controller: 'Drupal\ckeditor_mentions\Controller\CKMentionsController::getMatch'
     _title: 'Retrieve realname match'
+    match: ''
+    plugin_id: '[^a-z0-9_]+'
+  methods: [GET]
   requirements:
     _permission: 'use inline mentions'
-    match: ^[0-9a-zA-Z]+

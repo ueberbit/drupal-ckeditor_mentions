@@ -1,0 +1,16 @@
+ckeditor.plugin.mentions:
+  type: mapping
+  label: 'Configurations'
+  mapping:
+    enable:
+      type: integer
+      label: 'Status'
+    mentions_type:
+      type: string
+      label: 'Type of mentions'
+    charcount:
+      type: integer
+      label: 'Characters count'
+    timeout:
+      type: integer
+      label: 'Timeout'

@@ -1,4 +1,12 @@
 services:
   ckeditor_mentions.mention_event_dispatcher:
     class: Drupal\ckeditor_mentions\MentionEventDispatcher
-    arguments: ['@current_user', '@config.factory', '@event_dispatcher']
+    arguments:
+      - '@current_user'
+      - '@config.factory'
+      - '@event_dispatcher'
+      - '@entity_type.manager'
+      - '@plugin.manager.mentions_type'
+  plugin.manager.mentions_type:
+    class: Drupal\ckeditor_mentions\MentionsType\MentionsTypeManager
+    parent: default_plugin_manager

@@ -12,7 +12,12 @@ use Drupal\image\Entity\ImageStyle;
  */
 function ckeditor_mentions_install() {
   // Create tiny icon image style.
-  $style = ImageStyle::create(['name' => 'mentions_icon', 'label' => 'CKEditor Mentions Icon']);
+  $style = ImageStyle::create(
+    [
+      'name' => 'mentions_icon',
+      'label' => 'CKEditor Mentions Icon',
+    ]
+  );
 
   // Create effect.
   $configuration = [
@@ -20,8 +25,8 @@ function ckeditor_mentions_install() {
     'id' => 'image_scale_and_crop',
     'weight' => 0,
     'data' => [
-      'width' => 20,
-      'height' => 20,
+      'width' => 60,
+      'height' => 60,
     ],
   ];
   $effect = \Drupal::service('plugin.manager.image.effect')->createInstance($configuration['id'], $configuration);
@@ -29,4 +34,115 @@ function ckeditor_mentions_install() {
   // Add it to the image style and save.
   $style->addImageEffect($effect->getConfiguration());
   $style->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ckeditor_mentions_uninstall() {
+  // Remove tiny icon image style.
+  \Drupal::configFactory()->getEditable('image.style.mentions_icon')->delete();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function ckeditor_mentions_requirements($phase) {
+  $requirements = [];
+
+  if ($phase === 'runtime') {
+    $uninstalled_plugins = _get_uninstalled_plugins();
+    if (empty($uninstalled_plugins)) {
+      $requirements['mentions'] = [
+        'title' => t('CKEditor Mentions'),
+        'value' => t('Plugins detected'),
+        'severity' => REQUIREMENT_OK,
+      ];
+    }
+    else {
+      $requirements['mentions'] = [
+        'title' => t('CKEditor Mentions'),
+        'value' => t('Plugin not detected'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('The following plugins are missing @list. Please download them and place them in "libraries/ckeditor/plugins/{plugin}" directory. Check the README.md for more information.',
+          ['@list' => implode(', ', $uninstalled_plugins)]
+        ),
+      ];
+    }
+  }
+
+  return $requirements;
+}
+
+/**
+ * Get uninstalled plugins.
+ *
+ * @return array
+ *   Array of uninstalled plugins.
+ */
+function _get_uninstalled_plugins() {
+  $uninstalled_plugins = [];
+  /** @var \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager */
+  $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor.plugin');
+  /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
+  $mentions_plugin = $ckeditor_plugin_manager->createInstance('mentions');
+
+  $editor = \Drupal::entityTypeManager()->getStorage('editor')->load('full_html');
+
+  if (!$editor) {
+    \Drupal::logger('ckeditor_mentions')->error('Cannot find the editor');
+  }
+  $dependencies = $mentions_plugin->getDependencies($editor);
+
+  foreach ($dependencies + ['mentions'] as $dependency) {
+    $instance = ($dependency != 'mentions') ? $ckeditor_plugin_manager->createInstance($dependency) : $mentions_plugin;
+    $file_path = $instance->getFile();
+    if (!file_exists($file_path)) {
+      $uninstalled_plugins[] = $dependency;
+    }
+  }
+
+  return $uninstalled_plugins;
+}
+
+/**
+ * Update configuration for project using realname module.
+ *
+ * For backward compatibility enable the ckeditor_mentions_realname (CMR)
+ * submodule, and set the realname mentions as default plugin.
+ */
+function ckeditor_mentions_update_8002() {
+  if (!\Drupal::moduleHandler()->moduleExists('ckeditor_mentions_realname')) {
+    \Drupal::service('module_installer')->install(['ckeditor_mentions_realname']);
+  }
+
+  $editors = \Drupal::entityTypeManager()->getStorage('editor')->loadMultiple();
+  /** @var \Drupal\editor\Entity\Editor $editor */
+  foreach ($editors as $editor) {
+    $is_changed = FALSE;
+    $settings = $editor->getSettings();
+    foreach ($settings['plugins'] as $id => &$plugin) {
+      if ($id == 'mentions' && $plugin['enable']) {
+        /** @var \Drupal\ckeditor_mentions\MentionsType\MentionsTypeManager $manager */
+        $manager = \Drupal::service('plugin.manager.mentions_type');
+        /** @var \Drupal\ckeditor_mentions_realname\Plugin\MentionsType\Realname $realname */
+        $realname = $manager->createInstance('realname');
+
+        if (!$plugin['mentions_type']) {
+          $plugin = [
+            'timeout' => '500',
+            'charcount' => '3',
+            'mentions_type' => $realname->getPluginId(),
+            'enable' => 1,
+          ];
+
+          $is_changed = TRUE;
+        }
+      }
+    }
+    if ($is_changed) {
+      $editor->setSettings($settings);
+      $editor->save();
+    }
+  }
 }

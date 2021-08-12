@@ -2,13 +2,13 @@
 
 namespace Drupal\ckeditor_mentions;
 
+use Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use DOMDocument;
 
 /**
  * Class MentionService.
@@ -39,6 +39,20 @@ class MentionEventDispatcher {
   protected $eventDispatcher;
 
   /**
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManager
+   */
+  protected $entityManager;
+
+  /**
+   * Mentions type manager.
+   *
+   * @var \Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface
+   */
+  protected $mentionsTypeManager;
+
+  /**
    * MentionService constructor.
    *
    * @param \Drupal\Core\Session\AccountInterface $current_user
@@ -47,11 +61,17 @@ class MentionEventDispatcher {
    *   A configuration factory instance.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity type manager.
+   * @param \Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface $mentionsTypeManager
+   *   Mentions type.
    */
-  public function __construct(AccountInterface $current_user, ConfigFactoryInterface $config_factory, EventDispatcherInterface $event_dispatcher) {
+  public function __construct(AccountInterface $current_user, ConfigFactoryInterface $config_factory, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entityTypeManager, MentionsTypeManagerInterface $mentionsTypeManager) {
     $this->configFactory = $config_factory;
     $this->currentUser = $current_user;
     $this->eventDispatcher = $event_dispatcher;
+    $this->entityManager = $entityTypeManager;
+    $this->mentionsTypeManager = $mentionsTypeManager;
   }
 
   /**
@@ -62,15 +82,19 @@ class MentionEventDispatcher {
    * @param string $event_name
    *   The name of the event.
    */
-  public function dispatchMentionEvent(EntityInterface $entity, $event_name) {
+  public function dispatchMentionEvent(EntityInterface $entity, string $event_name) {
     // Load the Symfony event dispatcher object through services.
     $dispatcher = $this->eventDispatcher;
     // Creating our event class object.
-    $mentioned_users = $this->getMentionsFromEntity($entity);
-    $event = new CKEditorMentionEvent($entity, $mentioned_users);
-    // Dispatching the event through the ‘dispatch’  method, passing event name
-    // and event object ‘$event’ as parameters.
-    $dispatcher->dispatch($event_name, $event);
+    $mentioned_entities = $this->getMentionsFromEntity($entity);
+
+    // For backward compatibility a single entity
+    // is sent but with the same structure as before.
+    // @todo Remove in 3.0
+    foreach ($mentioned_entities as $id => $mentioned_entity) {
+      $event = new CKEditorMentionEvent($entity, [$id => $mentioned_entity]);
+      $dispatcher->dispatch($event_name, $event);
+    }
   }
 
   /**
@@ -78,7 +102,9 @@ class MentionEventDispatcher {
    *
    * The array returned has this format:
    *
-   * [user_id] => [
+   * [entity_id] => [
+   *    'uuid' => $uuid,
+   *   'id' => $id,
    *   'field_name' => [
    *     'delta' => [
    *       0 => 0,
@@ -97,11 +123,11 @@ class MentionEventDispatcher {
    * @return array
    *   The users mentioned.
    */
-  public function getMentionsFromEntity(EntityInterface $entity) {
-    $users_mentioned = [];
+  public function getMentionsFromEntity(EntityInterface $entity): array {
+    $mentioned_entities = [];
     // Check if some of the fields is using the CKEditor editor.
     if (!$entity instanceof FieldableEntityInterface) {
-      return $users_mentioned;
+      return $mentioned_entities;
     }
 
     $bundle_fields = $entity->getFieldDefinitions();
@@ -111,13 +137,14 @@ class MentionEventDispatcher {
       $field_value = $entity->get($field_name)->getValue();
       foreach ($field_value as $key => $item) {
         if (isset($item['format']) && in_array($item['format'], $format_using_mentions)) {
-          foreach ($this->getMentionedUsers($item['value']) as $uid) {
-            $users_mentioned[$uid][$field_name]['delta'][$key] = $key;
+          foreach ($this->getMentionedEntities($item['value']) as $id => $mentioned_entity_information) {
+            $mentioned_entities[$id][$field_name]['delta'][$key] = $key;
+            $mentioned_entities[$id] += $mentioned_entity_information;
           }
         }
       }
     }
-    return $users_mentioned;
+    return $mentioned_entities;
   }
 
   /**
@@ -126,7 +153,7 @@ class MentionEventDispatcher {
    * @return array
    *   An array with the editors using the mentions plugin.
    */
-  public function getTexformatsUsingMentions() {
+  public function getTexformatsUsingMentions(): array {
     $config_factory = $this->configFactory;
     $editor_using_mentions = [];
     foreach ($config_factory->listAll('editor.editor.') as $editor_name) {
@@ -150,54 +177,57 @@ class MentionEventDispatcher {
    *   An array with the uid of the user mentioned.
    */
   public function getMentionedUsers($field_value) {
-    $users_mentioned = [];
-    $database = Database::getConnection('default');
-    $current_user_uid = $this->currentUser->id();
+    @trigger_error('MentionEventDispatcher::getMentionedUsers() is deprecated in ckeditor_mentions:2.0.0 and will be removed before ckeditor_mentions:3.0.0. Instead MentionEventDispatcher::getMentionedEntities().');
+    return $this->getMentionedEntities($field_value);
+  }
+
+  /**
+   * Returns an with information about mentioned entities.
+   *
+   * @param string $field_value
+   *   The field text $field_text.
+   *
+   * @return array
+   *   Array with information about mentioned entities.
+   */
+  public function getMentionedEntities(string $field_value): array {
+    $mentioned_entities = [];
+    $plugins = [];
 
     if (empty($field_value)) {
-      return $users_mentioned;
+      return $mentioned_entities;
     }
 
-    $dom = new DOMDocument();
+    $dom = new \DOMDocument();
     $dom->loadHTML($field_value);
+
     $anchors = $dom->getElementsByTagName('a');
     foreach ($anchors as $anchor) {
-      $mentioned_user_id = $anchor->getAttribute('data-mention');
-      $link_text = $anchor->textContent;
-      if (empty($mentioned_user_id)) {
+      $plugin = NULL;
+      $entity_id = $anchor->getAttribute('data-mention');
+      $plugin_id = $anchor->getAttribute('data-plugin');
+
+      if (empty($entity_id)) {
         continue;
       }
 
-      // Third party modules can send custom suggestion via an event, if the
-      // user_id is not numeric then let it pass as it was sent so it can
-      // be handled by the third party module.
-      if (!is_numeric($mentioned_user_id)) {
-        $users_mentioned[$mentioned_user_id] = $mentioned_user_id;
-        continue;
+      /** @var \Drupal\ckeditor_mentions\MentionsType\MentionsTypeBase $plugin */
+      $plugin = $plugins[$plugin_id] = $plugins[$plugin_id] ?? $this->mentionsTypeManager->createInstance($plugin_id);
+
+      $mentioned_entities[$entity_id] = [
+        'id' => $entity_id,
+        'plugin' => $plugin,
+        'entity' => $this->entityManager->getStorage($plugin->getPluginDefinition()['entity_type'])->load($entity_id),
+      ];
+
+      // For backward compatibility add uid.
+      // @todo Remove in 3.0.
+      if ($plugin->getPluginId() == 'realname') {
+        $mentioned_entities[$entity_id]['uid'] = $entity_id;
       }
-
-      $query = $database->select('realname', 'rn');
-      $query->fields('rn', ['realname']);
-      $query->condition('rn.uid', $mentioned_user_id);
-
-      // Exclude currently logged in user from returned list.
-      if ($current_user_uid) {
-        $query->condition('rn.uid', $current_user_uid, '!=');
-      }
-
-      $result = $query->execute();
-      $result = $result->fetch();
-      $realname = $result->realname;
-
-      // Check if the realname is used inside the link.
-      if ($link_text !== $realname) {
-        continue;
-      }
-
-      $users_mentioned[$mentioned_user_id] = $mentioned_user_id;
     }
 
-    return $users_mentioned;
+    return $mentioned_entities;
   }
 
 }

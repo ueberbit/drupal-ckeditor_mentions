@@ -1,0 +1,10 @@
+name: CKEditor Mentions Realname
+type: module
+description: CKEditor mentions module integration with realname.
+package: CKEditor
+core: '8.x'
+core_version_requirement: ^8 || ^9
+
+dependencies:
+  - ckeditor_mentions:ckeditor_mentions
+  - realname:realname

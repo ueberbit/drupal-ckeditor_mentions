@@ -1,0 +1,33 @@
+{
+    "name": "drupal/ckeditor_mentions",
+    "type": "drupal-module",
+    "description": "This module will provide mentioning users in any CKEditor field, like we all known from systems Slack, Jira or Facebook.",
+    "keywords": ["Drupal", "ckeditor", "mentions"],
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://drupal.org/project/ckeditor_mentions",
+    "authors": [
+        {
+            "name": "Albert Skibinski",
+            "homepage": "https://www.drupal.org/u/askibinski",
+            "role": "Maintainer"
+        },
+        {
+            "name": "Michele Wickham",
+            "homepage": "https://www.drupal.org/u/michele-wickham",
+            "role": "Maintainer"
+        },
+        {
+            "name": "David Valdez",
+            "homepage": "https://www.drupal.org/u/gnuget",
+            "role": "Co-Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/ckeditor_mentions",
+        "source": "https://git.drupalcode.org/project/ckeditor_mentions"
+    },
+    "require": {
+        "drupal/ckeditor": "^8||^9",
+        "composer/installers": "^1.2"
+    }
+}
