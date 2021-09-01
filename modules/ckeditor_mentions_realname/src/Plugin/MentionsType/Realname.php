@@ -3,7 +3,7 @@
 namespace Drupal\ckeditor_mentions_realname\Plugin\MentionsType;
 
 use Drupal\ckeditor_mentions\Plugin\MentionsType\User;
-use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\Core\Database\Query\AlterableInterface;
 
 /**
  * Provides a user mentions integrated with realname module.
@@ -19,7 +19,7 @@ class Realname extends User {
   /**
    * {@inheritDoc}
    */
-  protected function getQuery(): SelectInterface {
+  protected function getQuery(): AlterableInterface {
     $query = $this->database->select('realname', 'rn');
 
     $query->leftJoin('users_field_data', 'ud', 'ud.uid = rn.uid');
