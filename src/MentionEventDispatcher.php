@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Session\AccountInterface;
+use Masterminds\HTML5;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -225,8 +226,10 @@ class MentionEventDispatcher {
       return $mentioned_entities;
     }
 
-    $dom = new \DOMDocument();
-    $dom->loadHTML($field_value);
+    // Instantiate the HTML5 parser, but without the HTML5 namespace being
+    // added to the DOM document.
+    $html5 = new HTML5(['disable_html_ns' => TRUE]);
+    $dom = $html5->loadHTML($field_value);
 
     $anchors = $dom->getElementsByTagName('a');
     foreach ($anchors as $anchor) {
