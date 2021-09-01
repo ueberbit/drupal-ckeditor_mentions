@@ -1,0 +1,8 @@
+name: CKEditor Mentions User test
+type: module
+description: A module testing CKEditor mentions user plugin
+package: Testing
+
+dependencies:
+  - ckeditor_mentions:ckeditor_mentions
+  - drupal:user

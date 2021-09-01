@@ -1,0 +1,8 @@
+name: CKEditor Mentions Events test
+type: module
+description: A module testing CKEditor mentions events
+package: Testing
+
+dependencies:
+  - ckeditor_mentions:ckeditor_mentions
+  - drupal:user

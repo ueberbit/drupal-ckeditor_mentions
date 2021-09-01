@@ -5,7 +5,7 @@ namespace Drupal\ckeditor_mentions\Events;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
- * Provides an Ckeditor mentions suggestion event.
+ * Provides a Ckeditor mentions suggestion event.
  *
  * @package Drupal\ckeditor_mentions
  */

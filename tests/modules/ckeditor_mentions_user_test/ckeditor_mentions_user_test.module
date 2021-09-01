@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Contain main hooks for ckeditor_mentions_user_test module.
+ */
+
+use Drupal\Core\Database\Query\AlterableInterface;
+
+/**
+ * Implements hook_query_TAG_alter().
+ */
+function ckeditor_mentions_user_test_query_ckeditor_mentions_user_test_alter(AlterableInterface $query) {
+  /** @var \Drupal\ckeditor_mentions_user_test\Plugin\MentionsType\UserTest $plugin */
+  $plugin = $query->getMetaData('plugin');
+  if ($plugin->getMatch() === 'test_query_alter') {
+    $conditions = &$query->conditions()[0]['field']->conditions();
+    $conditions[0]['value'] = '%Jho%';
+    $conditions[1]['value'] = '%Jho%';
+  }
+}

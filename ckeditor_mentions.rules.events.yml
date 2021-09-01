@@ -1,0 +1,26 @@
+ckeditor_mentions.mention:
+  label: 'After mentioning entity'
+  category: 'Mentions'
+  context_definitions:
+    entity:
+      type: 'entity'
+      label: 'The entity that triggered the event.'
+    mentionedEntity:
+      type: 'entity'
+      label: 'Mentioned entity.'
+    plugin:
+      type: 'any'
+      label: 'Plugin'
+ckeditor_mentions.mention_subsequent:
+  label: 'After mentioning entity all except first time'
+  category: 'Mentions'
+  context_definitions:
+    entity:
+      type: 'entity'
+      label: 'The entity that triggered the event.'
+    mentionedEntity:
+      type: 'entity'
+      label: 'Mentioned entity.'
+    plugin:
+      type: 'any'
+      label: 'Plugin'

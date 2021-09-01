@@ -52,6 +52,20 @@ class CKEditorMentionEvent extends Event implements CKEditorMentionEventInterfac
   }
 
   /**
+   * Getter for rules integration.
+   *
+   * @see https://www.drupal.org/project/rules/issues/2762517
+   *
+   * @param string $name
+   *
+   * @return mixed
+   *   Property of new event or null.
+   */
+  public function __get(string $name) {
+    return $this->event->$name ?: NULL;
+  }
+
+  /**
    * Returns the reference ID.
    *
    * @return EntityInterface

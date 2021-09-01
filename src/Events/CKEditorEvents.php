@@ -14,7 +14,7 @@ final class CKEditorEvents {
    *
    * @var string
    */
-  const MENTION_FIRST = 'event.mention';
+  const MENTION_FIRST = 'ckeditor_mentions.mention';
 
   /**
    * The MENTION_SUBSEQUENT event.
@@ -23,7 +23,7 @@ final class CKEditorEvents {
    *
    * @var string
    */
-  const MENTION_SUBSEQUENT = 'event.mention_subsequent';
+  const MENTION_SUBSEQUENT = 'ckeditor_mentions.mention_subsequent';
 
   /**
    * The SUGGESTION event.
@@ -32,6 +32,6 @@ final class CKEditorEvents {
    *
    * @var string
    */
-  const SUGGESTION = 'ckeditor_mentions.suggestion';
+  const SUGGESTION = 'ckeditor_mentions.suggestion_event';
 
 }

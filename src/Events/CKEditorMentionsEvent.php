@@ -31,6 +31,8 @@ class CKEditorMentionsEvent extends Event implements CKEditorMentionEventInterfa
    * Additional information.
    *
    * @var array
+   *
+   * @todo Remove in 3.0, exists only for bc.
    */
   public $additionalInformation;
 

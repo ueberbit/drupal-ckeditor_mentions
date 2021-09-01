@@ -2,6 +2,9 @@
 
 namespace Drupal\ckeditor_mentions;
 
+use Drupal\ckeditor\CKEditorPluginManager;
+use Drupal\ckeditor_mentions\Events\CKEditorEvents;
+use Drupal\ckeditor_mentions\Events\CKEditorMentionsEvent;
 use Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -14,6 +17,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * Class MentionService.
  *
  * @package Drupal\ckeditor_mentions
+ * @internal
  */
 class MentionEventDispatcher {
 
@@ -53,6 +57,13 @@ class MentionEventDispatcher {
   protected $mentionsTypeManager;
 
   /**
+   * Ckeditor plugin manager.
+   *
+   * @var \Drupal\ckeditor\CKEditorPluginManager
+   */
+  protected $ckeditorPluginManager;
+
+  /**
    * MentionService constructor.
    *
    * @param \Drupal\Core\Session\AccountInterface $current_user
@@ -65,13 +76,21 @@ class MentionEventDispatcher {
    *   Entity type manager.
    * @param \Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface $mentionsTypeManager
    *   Mentions type.
+   * @param \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager
+   *   Ckeditor plugin manager.
    */
-  public function __construct(AccountInterface $current_user, ConfigFactoryInterface $config_factory, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entityTypeManager, MentionsTypeManagerInterface $mentionsTypeManager) {
+  public function __construct(AccountInterface $current_user,
+      ConfigFactoryInterface $config_factory,
+      EventDispatcherInterface $event_dispatcher,
+      EntityTypeManagerInterface $entityTypeManager,
+      MentionsTypeManagerInterface $mentionsTypeManager,
+      CKEditorPluginManager $ckeditor_plugin_manager) {
     $this->configFactory = $config_factory;
     $this->currentUser = $current_user;
     $this->eventDispatcher = $event_dispatcher;
     $this->entityManager = $entityTypeManager;
     $this->mentionsTypeManager = $mentionsTypeManager;
+    $this->ckeditorPluginManager = $ckeditor_plugin_manager;
   }
 
   /**
@@ -91,9 +110,16 @@ class MentionEventDispatcher {
     // For backward compatibility a single entity
     // is sent but with the same structure as before.
     // @todo Remove in 3.0
-    foreach ($mentioned_entities as $id => $mentioned_entity) {
-      $event = new CKEditorMentionEvent($entity, [$id => $mentioned_entity]);
+    foreach ($mentioned_entities as $mentioned_entity) {
+      $event = new CKEditorMentionsEvent($entity, $mentioned_entity['entity'], $mentioned_entity['plugin'], $mentioned_entity);
       $dispatcher->dispatch($event_name, $event);
+
+      $legacy_event_name = $event_name === CKEditorEvents::MENTION_FIRST ? CKEditorMentionEvent::MENTION_FIRST : CKEditorMentionEvent::MENTION_SUBSEQUENT;
+      $legacy_event = new CKEditorMentionEvent($event->getEntity(), [
+        'entity' => $event->getMentionedEntity(),
+        'plugin' => $event->getPlugin(),
+      ] + $event->getAdditionalInformation());
+      $dispatcher->dispatch($legacy_event_name, $legacy_event);
     }
   }
 
@@ -154,13 +180,14 @@ class MentionEventDispatcher {
    *   An array with the editors using the mentions plugin.
    */
   public function getTexformatsUsingMentions(): array {
-    $config_factory = $this->configFactory;
     $editor_using_mentions = [];
-    foreach ($config_factory->listAll('editor.editor.') as $editor_name) {
-      $editor = $config_factory->getEditable($editor_name);
-      $editor = $editor->get();
-      if (isset($editor['settings']['plugins']['mentions']) && $editor['settings']['plugins']['mentions']['enable']) {
-        $editor_using_mentions[] = $editor['format'];
+    $editors = $this->entityManager->getStorage('editor')->loadByProperties(['editor' => 'ckeditor']);
+    /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
+    $mentions_plugin = $this->ckeditorPluginManager->createInstance('mentions');
+    /** @var \Drupal\editor\Entity\Editor $editor */
+    foreach ($editors as $editor) {
+      if ($mentions_plugin->isEnabled($editor)) {
+        $editor_using_mentions[] = $editor->id();
       }
     }
 
