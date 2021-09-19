@@ -5,7 +5,6 @@ namespace Drupal\ckeditor_mentions_events_test\EventSubscriber;
 use Drupal\ckeditor_mentions\Events\CKEditorEvents;
 use Drupal\ckeditor_mentions\Events\CKEditorMentionsEvent;
 use Drupal\ckeditor_mentions\Events\CKEditorMentionSuggestionsEvent;
-use Drupal\ckeditor_mentions_events_test\Exception\SuggestionSuccessTestException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -41,7 +40,9 @@ class CkeditorMentionsSuggestionSubscriberTest implements EventSubscriberInterfa
    */
   public function onMentions(CKEditorMentionsEvent $event) {
     if ($event->getMentionedEntity()->getDisplayName() === self::TEST_MENTIONED_USER_NAME) {
-      throw new SuggestionSuccessTestException();
+      /** @var \Drupal\node\NodeInterface $node */
+      $node = $event->getEntity();
+      $node->setTitle(self::TEST_MENTIONED_USER_NAME);
     }
   }
 

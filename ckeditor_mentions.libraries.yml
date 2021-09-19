@@ -3,3 +3,14 @@ ckeditor_mentions:
   css:
     layout:
       css/ckeditor_mentions.css: {}
+
+mentions:
+  version: VERSION
+  js:
+    js/mentions.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - core/drupal
+    - core/drupalSettings
+    - core/ckeditor

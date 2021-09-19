@@ -1,6 +1,7 @@
 {
     "name": "drupal/ckeditor_mentions",
     "type": "drupal-module",
+    "minimum-stability": "beta",
     "description": "This module will provide mentioning users in any CKEditor field, like we all known from systems Slack, Jira or Facebook.",
     "keywords": ["Drupal", "ckeditor", "mentions"],
     "license": "GPL-2.0-or-later",
@@ -31,5 +32,8 @@
         "drupal/ckeditor": "^8||^9",
         "composer/installers": "^1.2",
         "masterminds/html5": "^2.1"
+    },
+    "require-dev": {
+        "drupal/realname": "^2.0@beta"
     }
 }

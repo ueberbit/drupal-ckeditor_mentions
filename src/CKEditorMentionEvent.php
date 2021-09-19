@@ -45,10 +45,8 @@ class CKEditorMentionEvent extends Event implements CKEditorMentionEventInterfac
    * @param array $mentioned_entity
    *   The users mentioned in the entity.
    */
-  public function __construct(EntityInterface $entity, array $mentioned_entity = []) {
-    // @see MentionEventDispatcher::dispatchMentionEvent for more information.
-    $information = current($mentioned_entity);
-    $this->event = new Events\CKEditorMentionsEvent($entity, $information['entity'], $information['plugin'], $mentioned_entity);
+  public function __construct(EntityInterface $entity, array $information = []) {
+    $this->event = new Events\CKEditorMentionsEvent($entity, $information['entity'], $information['plugin'], $information);
   }
 
   /**

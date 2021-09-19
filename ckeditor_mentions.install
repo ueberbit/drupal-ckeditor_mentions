@@ -5,6 +5,7 @@
  * Contains installation and update scripts.
  */
 
+use Drupal\editor\Entity\Editor;
 use Drupal\image\Entity\ImageStyle;
 
 /**
@@ -51,7 +52,7 @@ function ckeditor_mentions_requirements($phase) {
   $requirements = [];
 
   if ($phase === 'runtime') {
-    $uninstalled_plugins = _get_uninstalled_plugins();
+    $uninstalled_plugins = _ckeditor_mentions_get_uninstalled_plugins();
     if (empty($uninstalled_plugins)) {
       $requirements['mentions'] = [
         'title' => t('CKEditor Mentions'),
@@ -80,18 +81,16 @@ function ckeditor_mentions_requirements($phase) {
  * @return array
  *   Array of uninstalled plugins.
  */
-function _get_uninstalled_plugins() {
+function _ckeditor_mentions_get_uninstalled_plugins() {
   $uninstalled_plugins = [];
   /** @var \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager */
   $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor.plugin');
   /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
   $mentions_plugin = $ckeditor_plugin_manager->createInstance('mentions');
 
-  $editor = \Drupal::entityTypeManager()->getStorage('editor')->load('full_html');
-
-  if (!$editor) {
-    \Drupal::logger('ckeditor_mentions')->error('Cannot find the editor');
-  }
+  // We just need to mock-up editor, and to make sure that it exists.
+  // getDependencies mentions plugin method doesn't use editor at all.
+  $editor = Editor::create(['editor' => 'ckeditor']);
   $dependencies = $mentions_plugin->getDependencies($editor);
 
   foreach ($dependencies + ['mentions'] as $dependency) {
@@ -116,31 +115,53 @@ function ckeditor_mentions_update_8002() {
     \Drupal::service('module_installer')->install(['ckeditor_mentions_realname']);
   }
 
+  _ckeditor_mentions_mentions_map(function (&$settings) {
+    $mentions_config = &$settings['plugins']['mentions'];
+
+    if (!isset($mentions_config['mentions_type'])) {
+      $mentions_config = [
+        'timeout' => '500',
+        'charcount' => '3',
+        'mentions_type' => 'realname',
+        'enable' => TRUE,
+      ];
+      return TRUE;
+    }
+    return FALSE;
+  });
+}
+
+/**
+ * Adds missing additional configurations.
+ */
+function ckeditor_mentions_update_8003() {
+  _ckeditor_mentions_mentions_map(function (&$settings) {
+    $mentions_config = &$settings['plugins']['mentions'];
+
+    if (!isset($mentions_config['marker'])) {
+      $mentions_config['marker'] = '@';
+      $mentions_config['pattern'] = '';
+      $mentions_config['advanced_pattern'] = '';
+      $mentions_config['use_advanced_pattern'] = FALSE;
+      return TRUE;
+    }
+    return FALSE;
+  });
+}
+
+/**
+ * Applies the callback to all enabled 'mentions' plugins.
+ */
+function _ckeditor_mentions_mentions_map(callable $settings_processor) {
   $editors = \Drupal::entityTypeManager()->getStorage('editor')->loadMultiple();
+  /** @var \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager */
+  $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor.plugin');
+  /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
+  $mentions_plugin = $ckeditor_plugin_manager->createInstance('mentions');
   /** @var \Drupal\editor\Entity\Editor $editor */
   foreach ($editors as $editor) {
-    $is_changed = FALSE;
     $settings = $editor->getSettings();
-    foreach ($settings['plugins'] as $id => &$plugin) {
-      if ($id == 'mentions' && $plugin['enable']) {
-        /** @var \Drupal\ckeditor_mentions\MentionsType\MentionsTypeManager $manager */
-        $manager = \Drupal::service('plugin.manager.mentions_type');
-        /** @var \Drupal\ckeditor_mentions_realname\Plugin\MentionsType\Realname $realname */
-        $realname = $manager->createInstance('realname');
-
-        if (!$plugin['mentions_type']) {
-          $plugin = [
-            'timeout' => '500',
-            'charcount' => '3',
-            'mentions_type' => $realname->getPluginId(),
-            'enable' => 1,
-          ];
-
-          $is_changed = TRUE;
-        }
-      }
-    }
-    if ($is_changed) {
+    if ($mentions_plugin->isEnabled($editor) && $settings_processor($settings)) {
       $editor->setSettings($settings);
       $editor->save();
     }

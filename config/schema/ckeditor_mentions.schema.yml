@@ -3,7 +3,7 @@ ckeditor.plugin.mentions:
   label: 'Configurations'
   mapping:
     enable:
-      type: integer
+      type: boolean
       label: 'Status'
     mentions_type:
       type: string
@@ -14,3 +14,15 @@ ckeditor.plugin.mentions:
     timeout:
       type: integer
       label: 'Timeout'
+    marker:
+      type: string
+      label: 'Marker'
+    use_advanced_pattern:
+      type: boolean
+      label: 'Use advanced pattern?'
+    pattern:
+      type: string
+      label: 'Pattern'
+    advanced_pattern:
+      type: string
+      label: 'Advanced pattern'

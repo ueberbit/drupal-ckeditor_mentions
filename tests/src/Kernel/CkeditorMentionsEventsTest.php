@@ -4,7 +4,6 @@ namespace Drupal\Tests\ckeditor_mentions\Kernel;
 
 use Drupal\ckeditor_mentions\Events\CKEditorEvents;
 use Drupal\ckeditor_mentions_events_test\EventSubscriber\CkeditorMentionsSuggestionSubscriberTest as TestSubscriber;
-use Drupal\ckeditor_mentions_events_test\Exception\SuggestionSuccessTestException;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\node\Entity\Node;
@@ -116,8 +115,8 @@ class CkeditorMentionsEventsTest extends KernelTestBase {
       ],
     ]);
 
-    $this->expectException(SuggestionSuccessTestException::class);
     $this->dispatcher->dispatchMentionEvent($node, CKEditorEvents::MENTION_FIRST);
+    $this->assertEqual($node->getTitle(), TestSubscriber::TEST_MENTIONED_USER_NAME);
   }
 
   /**
