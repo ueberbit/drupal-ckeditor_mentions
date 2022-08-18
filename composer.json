@@ -29,7 +29,6 @@
     },
     "require": {
         "php": ">=7.3.0",
-        "drupal/ckeditor": "^8||^9",
         "composer/installers": "^1.2",
         "masterminds/html5": "^2.1"
     },
