@@ -14,3 +14,22 @@ mentions:
     - core/drupal
     - core/drupalSettings
     - core/ckeditor
+
+mentions.ajax:
+  version: VERSION
+  js:
+    js/mentions.ajax.js: {}
+
+ckeditor.plugin.mention:
+  js:
+    /libraries/ckeditor/plugins/mentions/mention.js: {}
+  dependencies:
+    - ckeditor5/ckeditor5
+    - ckeditor_mentions/mentions
+    - ckeditor_mentions/mentions.ajax
+
+mentions.user:
+  js:
+    js/build/drupalMentionUser.js: {}
+  dependencies:
+    - ckeditor5/ckeditor5

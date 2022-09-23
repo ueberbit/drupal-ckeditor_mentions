@@ -3,6 +3,7 @@
 namespace Drupal\ckeditor_mentions;
 
 use Drupal\ckeditor\CKEditorPluginManager;
+use Drupal\ckeditor5\Plugin\CKEditor5PluginManager;
 use Drupal\ckeditor_mentions\Events\CKEditorEvents;
 use Drupal\ckeditor_mentions\Events\CKEditorMentionsEvent;
 use Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface;
@@ -60,7 +61,7 @@ class MentionEventDispatcher {
   /**
    * Ckeditor plugin manager.
    *
-   * @var \Drupal\ckeditor\CKEditorPluginManager
+   * @var \Drupal\ckeditor5\Plugin\CKEditor5PluginManager
    */
   protected $ckeditorPluginManager;
 
@@ -77,7 +78,7 @@ class MentionEventDispatcher {
    *   Entity type manager.
    * @param \Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface $mentionsTypeManager
    *   Mentions type.
-   * @param \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager
+   * @param \Drupal\ckeditor5\Plugin\CKEditor5PluginManager $ckeditor_plugin_manager
    *   Ckeditor plugin manager.
    */
   public function __construct(AccountInterface $current_user,
@@ -85,7 +86,7 @@ class MentionEventDispatcher {
       EventDispatcherInterface $event_dispatcher,
       EntityTypeManagerInterface $entityTypeManager,
       MentionsTypeManagerInterface $mentionsTypeManager,
-      CKEditorPluginManager $ckeditor_plugin_manager) {
+      CKEditor5PluginManager $ckeditor_plugin_manager) {
     $this->configFactory = $config_factory;
     $this->currentUser = $current_user;
     $this->eventDispatcher = $event_dispatcher;
@@ -182,9 +183,9 @@ class MentionEventDispatcher {
    */
   public function getTexformatsUsingMentions(): array {
     $editor_using_mentions = [];
-    $editors = $this->entityManager->getStorage('editor')->loadByProperties(['editor' => 'ckeditor']);
-    /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
-    $mentions_plugin = $this->ckeditorPluginManager->createInstance('mentions');
+    $editors = $this->entityManager->getStorage('editor')->loadByProperties(['editor' => 'ckeditor5']);
+    /** @var \Drupal\ckeditor_mentions\Plugin\CKEditor5Plugin\Mentions $mentions_plugin */
+    $mentions_plugin = $this->ckeditorPluginManager->createInstance('ckeditor_mentions_mentions');
     /** @var \Drupal\editor\Entity\Editor $editor */
     foreach ($editors as $editor) {
       if ($mentions_plugin->isEnabled($editor)) {

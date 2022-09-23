@@ -1,0 +1,10 @@
+ckeditor_mentions_user:
+  ckeditor5:
+    plugins:
+      - drupalMentionUser.DrupalMentionUser
+  drupal:
+    label: 'ckeditor mentions'
+    library: ckeditor_mentions/mentions.user
+    elements:
+      - <a>
+      - <a data-mention data-entity-id href>

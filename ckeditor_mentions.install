@@ -82,11 +82,13 @@ function ckeditor_mentions_requirements($phase) {
  *   Array of uninstalled plugins.
  */
 function _ckeditor_mentions_get_uninstalled_plugins() {
+  return [];
+
   $uninstalled_plugins = [];
-  /** @var \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager */
-  $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor.plugin');
-  /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
-  $mentions_plugin = $ckeditor_plugin_manager->createInstance('mentions');
+  /** @var \Drupal\ckeditor5\Plugin\CKEditor5PluginManager $ckeditor_plugin_manager */
+  $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor5.plugin');
+  /** @var \Drupal\ckeditor_mentions\Plugin\CKEditor5Plugin\Mentions $mentions_plugin */
+  $mentions_plugin = $ckeditor_plugin_manager->createInstance('ckeditor_mentions_mentions');
 
   // We just need to mock-up editor, and to make sure that it exists.
   // getDependencies mentions plugin method doesn't use editor at all.
@@ -154,8 +156,8 @@ function ckeditor_mentions_update_8003() {
  */
 function _ckeditor_mentions_mentions_map(callable $settings_processor) {
   $editors = \Drupal::entityTypeManager()->getStorage('editor')->loadMultiple();
-  /** @var \Drupal\ckeditor\CKEditorPluginManager $ckeditor_plugin_manager */
-  $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor.plugin');
+  /** @var \Drupal\ckeditor5\Plugin\CKEditor5PluginManager $ckeditor_plugin_manager */
+  $ckeditor_plugin_manager = \Drupal::service('plugin.manager.ckeditor5.plugin');
   /** @var \Drupal\ckeditor_mentions\Plugin\CKEditorPlugin\Mentions $mentions_plugin */
   $mentions_plugin = $ckeditor_plugin_manager->createInstance('mentions');
   /** @var \Drupal\editor\Entity\Editor $editor */

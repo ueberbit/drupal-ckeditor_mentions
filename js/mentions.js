@@ -16,6 +16,8 @@
    */
   Drupal.behaviors.ckeditorMentionsPattern = {
     attach: function attach() {
+      return;
+
       if (!$(window).once('ckeditor_mentions_pattern').length) {
         return;
       }

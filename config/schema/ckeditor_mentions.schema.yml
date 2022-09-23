@@ -1,6 +1,6 @@
-ckeditor.plugin.mentions:
-  type: mapping
-  label: 'Configurations'
+ckeditor5.plugin.ckeditor_mentions_mentions:
+  type: config_object
+  label: 'CKE Mention Settings'
   mapping:
     enable:
       type: boolean

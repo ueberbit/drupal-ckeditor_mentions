@@ -93,8 +93,8 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
     $result = [];
     foreach ($entities as $id => $entity) {
       if ($entity instanceof EntityInterface) {
-        $result[$id]['id'] = $entity->id();
-        $result[$id]['name'] = $entity->uuid();
+        $result[$id]['uuid'] = $entity->uuid();
+        $result[$id]['label'] = $entity->label();
       }
 
     }
@@ -210,10 +210,13 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
   public function defaultConfiguration(): array {
     $item_template = $this->itemTemplate();
     $output_template = $this->outputTemplate();
+    $getCurrent = function ($i) {
+      return $i;
+    };
     return [
       'match' => '',
-      'output_template' => is_array($output_template) ? current($this->renderer->renderPlain($output_template)) : $output_template,
-      'item_template' => is_array($item_template) ? current($this->renderer->renderPlain($item_template)) : $item_template,
+      'output_template' => is_array($output_template) ? $getCurrent($this->renderer->renderPlain($output_template)) : $output_template,
+      'item_template' => is_array($item_template) ? $getCurrent($this->renderer->renderPlain($item_template)) : $item_template,
     ];
   }
 

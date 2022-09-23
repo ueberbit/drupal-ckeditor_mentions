@@ -1,27 +1,44 @@
 <?php
 
-namespace Drupal\ckeditor_mentions\Plugin\CKEditorPlugin;
+namespace Drupal\ckeditor_mentions\Plugin\CKEditor5Plugin;
 
 use Drupal\ckeditor\CKEditorPluginBase;
 use Drupal\ckeditor\CKEditorPluginConfigurableInterface;
 use Drupal\ckeditor\CKEditorPluginContextualInterface;
+use Drupal\ckeditor\CKEditorPluginCssInterface;
+use Drupal\ckeditor5\Plugin\CKEditor5PluginConfigurableInterface;
+use Drupal\ckeditor5\Plugin\CKEditor5PluginConfigurableTrait;
+use Drupal\ckeditor5\Plugin\CKEditor5PluginDefault;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\SubformState;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Url;
+use Drupal\editor\EditorInterface;
 use Drupal\editor\Entity\Editor;
-use Drupal\ckeditor\CKEditorPluginCssInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines the "mentions" plugin.
  *
- * @CKEditorPlugin(
- *   id = "mentions",
- *   label = @Translation("Mentions"),
- *   module = "ckeditor_mentions"
+ * @CKEditor5Plugin(
+ *   id = "ckeditor_mentions_mentions",
+ *   ckeditor5 = @CKEditor5AspectsOfCKEditor5Plugin(
+ *   plugins = {
+ *     "mention.Mention"
+ *   }
+ *   ),
+ *   drupal = @DrupalAspectsOfCKEditor5Plugin(
+ *     label = @Translation("Mentions"),
+ *     library = "ckeditor_mentions/ckeditor.plugin.mention",
+ *     elements = {
+ *      "<span>"
+ *       }
+ *   )
  * )
  */
-class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableInterface, CKEditorPluginContextualInterface, CKEditorPluginCssInterface, ContainerFactoryPluginInterface {
+class Mentions extends CKEditor5PluginDefault implements CKEditor5PluginConfigurableInterface, ContainerFactoryPluginInterface {
+
+  use CKEditor5PluginConfigurableTrait;
 
   const DEFAULT_PLUGIN = 'user';
 
@@ -39,20 +56,6 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
     $instance = new static($configuration, $plugin_id, $plugin_definition);
     $instance->mentionsPluginManager = $container->get('plugin.manager.mentions_type');
     return $instance;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDependencies(Editor $editor) {
-    return ['autocomplete', 'textmatch', 'ajax', 'xml', 'textwatcher'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getButtons() {
-    return [];
   }
 
   /**
@@ -116,40 +119,9 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
   /**
    * {@inheritdoc}
    */
-  public function getFile() {
-    return 'libraries/ckeditor/plugins/mentions/plugin.js';
-  }
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state): array {
+    $settings = $this->getConfiguration();
 
-  /**
-   * {@inheritdoc}
-   */
-  public function isEnabled(Editor $editor) {
-    $settings = $editor->getSettings();
-
-    return (isset($settings['plugins']['mentions']['enable']) && $settings['plugins']['mentions']['enable']);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCssFiles(Editor $editor) {
-    return [];
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getLibraries(Editor $editor) {
-    return [
-      'ckeditor_mentions/ckeditor_mentions',
-    ] + parent::getLibraries($editor);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function settingsForm(array $form, FormStateInterface $form_state, Editor $editor) {
-    $settings = $editor->getSettings()['plugins']['mentions'] ?? [];
     $form['enable'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enable Mentions'),
@@ -176,7 +148,7 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
 
     $form['advanced'] = [
       '#type' => 'details',
-      '#parents' => ['editor', 'settings', 'plugins', 'mentions'],
+      '#parents' => ['editor', 'settings', 'plugins', 'ckeditor_mentions_mentions'],
       '#tree' => TRUE,
       '#title' => $this->t('Advanced settings'),
       '#open' => FALSE,
@@ -282,8 +254,77 @@ class Mentions extends CKEditorPluginBase implements CKEditorPluginConfigurableI
   protected function getMentionsStateValues(FormStateInterface $form_state) {
     return $form_state instanceof SubformState ?
       $form_state->getCompleteFormState()
-        ->getValue(['editor', 'settings', 'plugins', 'mentions']) :
-      $form_state->getValue(['editor', 'settings', 'plugins', 'mentions']);
+        ->getValue(['editor', 'settings', 'plugins', 'ckeditor_mentions_mentions']) :
+      $form_state->getValue(['editor', 'settings', 'plugins', 'ckeditor_mentions_mentions']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'enable' => FALSE,
+      'mentions_type' => self::DEFAULT_PLUGIN,
+      'timeout' => 500,
+      'marker' => '@',
+      'charcount' => 2,
+      'use_advanced_pattern' => FALSE,
+      'pattern' => '',
+      'advanced_pattern' => '',
+    ];
+  }
+
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+    // TODO: Implement validateConfigurationForm() method.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state): void {
+    $this->configuration['enable'] = (bool) $form_state->getValue('enable');
+    $this->configuration['mentions_type'] = $form_state->getValue('mentions_type');
+    $this->configuration['timeout'] = (int) $form_state->getValue('timeout');
+    $this->configuration['marker'] = $form_state->getValue('marker');
+    $this->configuration['charcount'] = (int) $form_state->getValue('charcount');
+    $this->configuration['use_advanced_pattern'] = (bool) $form_state->getValue('use_advanced_pattern');
+    $this->configuration['pattern'] = $form_state->getValue('pattern');
+    $this->configuration['advanced_pattern'] = $form_state->getValue('advanced_pattern');
+  }
+
+  public function getDynamicPluginConfig(array $static_plugin_config, EditorInterface $editor): array {
+    if (!$this->configuration['enable']) {
+      return [];
+    }
+
+    $options = [
+      'feeds' => [
+        [
+          'marker' => $this->configuration['marker'],
+          'feed' => [
+            'func' => [
+              'name' => 'Drupal.ckeditor5DrupalMention',
+              'args' => [
+                [
+                  'type' => 'user',
+                  'url' => Url::fromRoute('ckeditor_mentions.ajax_callback', ['plugin_id' => 'user', 'match' => '--match--'])->setAbsolute()->toString(),
+                  'marker' => $this->configuration['marker'],
+                ],
+              ],
+              'invoke' => TRUE,
+            ],
+          ],
+          'itemRenderer' => [
+            'func' => [
+              'name' => 'Drupal.ckeditor5DrupalMentionUser.itemRenderer',
+            ],
+          ],
+          'minimumCharacters' => $this->configuration['charcount'],
+        ],
+      ],
+    ];
+
+    return ['mention' => $options];
   }
 
 }

@@ -7,7 +7,7 @@ services:
       - '@event_dispatcher'
       - '@entity_type.manager'
       - '@plugin.manager.mentions_type'
-      - '@plugin.manager.ckeditor.plugin'
+      - '@plugin.manager.ckeditor5.plugin'
   plugin.manager.mentions_type:
     class: Drupal\ckeditor_mentions\MentionsType\MentionsTypeManager
     parent: default_plugin_manager
