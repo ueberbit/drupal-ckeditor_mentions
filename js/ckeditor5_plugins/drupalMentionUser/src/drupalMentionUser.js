@@ -25,7 +25,7 @@ export default class DrupalMentionUser extends Plugin {
       }
     });
 
-    // The upcast converter will convert view <a class="mention" href="" data-user-id="">
+    // The upcast converter will convert view <a class="mention" href="" data-plugin="">
     // elements to the model 'mention' text attribute.
     editor.conversion.for('upcast').elementToAttribute({
       view: {
@@ -34,6 +34,7 @@ export default class DrupalMentionUser extends Plugin {
         classes: 'mention',
         attributes: {
           href: true,
+          'data-plugin': true,
         }
       },
       model: {
@@ -71,7 +72,7 @@ export default class DrupalMentionUser extends Plugin {
           'data-entity-type': modelAttributeValue.entity_type ?? null,
           'data-entity-uuid': modelAttributeValue.uuid ?? null,
           'data-plugin': modelAttributeValue.plugin ?? null,
-          'href': modelAttributeValue.link
+          'href': modelAttributeValue.link ?? null,
         }, {
           // Make mention attribute to be wrapped by other attribute elements.
           priority: 20,
