@@ -25,73 +25,62 @@ export default class DrupalMentionUser extends Plugin {
       }
     });
 
-    // The upcast converter will convert <a class="mention" href="" data-entity-id="">
-    // elements to the model 'mention' attribute.
-    editor.conversion.for('upcast').elementToElement({
+    // The upcast converter will convert view <a class="mention" href="" data-user-id="">
+    // elements to the model 'mention' text attribute.
+    editor.conversion.for( 'upcast' ).elementToAttribute( {
       view: {
         name: 'a',
         key: 'data-mention',
+        classes: 'mention',
         attributes: {
-          'data-mention': true,
+          href: true,
         }
       },
       model: {
         key: 'mention',
         value: viewItem => {
-          // BC-Layer for older mentions from ckeditor4.
-          let mentionId = viewItem.getAttribute('data-mention');
-          let mentionPlugin = viewItem.getAttribute('data-plugin');
-          let mentionMarker = mentionTypeToMakerMap[mentionPlugin] ?? false;
-          if (mentionPlugin !== null && mentionId !== null && mentionMarker && mentionId.charAt(0) !== mentionMarker) {
-            viewItem._setAttribute('data-mention', mentionMarker + mentionId);
-          }
-          // End BC-Layer
-
-          return viewItem;
-
           // The mention feature expects that the mention attribute value
           // in the model is a plain object with a set of additional attributes.
-          // In order to create a proper object, use the toMentionAttribute helper method:
-          const mentionAttribute = editor.plugins.get('Mention').toMention<Attribute(viewItem, {
+          // In order to create a proper object use the toMentionAttribute() helper method:
+          const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
             // Add any other properties that you need.
-            link: viewItem.getAttribute('href'),
-            userId: viewItem.getAttribute('data-entity-id'),
-            uuid: viewItem.getAttribute('data-entity-uuid'),
-            mentionsType: viewItem.getAttribute('data-plugin'),
-          });
+            link: viewItem.getAttribute( 'href' ),
+            entity_type: viewItem.getAttribute( 'data-entity-type' ),
+            entity_uuid: viewItem.getAttribute( 'data-entity-uuid' ),
+            plugin: viewItem.getAttribute( 'data-plugin' ),
+          } );
 
           return mentionAttribute;
         }
       },
       converterPriority: 'high'
-    });
+    } );
 
     // Downcast the model 'mention' text attribute to a view <a> element.
-    editor.conversion.for('downcast').attributeToElement({
+    editor.conversion.for( 'downcast' ).attributeToElement( {
       model: 'mention',
-      view: (modelAttributeValue, {writer}) => {
+      view: ( modelAttributeValue, { writer } ) => {
         // Do not convert empty attributes (lack of value means no mention).
-        if (!modelAttributeValue) {
+        if ( !modelAttributeValue ) {
           return;
         }
 
-        debugger;
-
-        return writer.createContainerElement('a', {
+        return writer.createAttributeElement( 'a', {
           class: 'mention',
           'data-mention': modelAttributeValue.id,
+          'data-entity-type': modelAttributeValue.entity_type ?? null,
           'data-entity-uuid': modelAttributeValue.uuid ?? null,
-          'data-plugin': modelAttributeValue.mentionsType ?? null,
-          link: modelAttributeValue.url ?? null,
+          'data-plugin': modelAttributeValue.plugin ?? null,
+          'href': modelAttributeValue.link
         }, {
           // Make mention attribute to be wrapped by other attribute elements.
           priority: 20,
           // Prevent merging mentions together.
           id: modelAttributeValue.uid
-        });
+        } );
       },
       converterPriority: 'high'
-    });
+    } );
   }
 
   /**
