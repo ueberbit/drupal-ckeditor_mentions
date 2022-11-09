@@ -10,7 +10,7 @@
 
 // The contents of SimpleBoxUI and SimpleBox editing could be included in this
 // file, but it is recommended to separate these concerns in different files.
-import { Plugin } from 'ckeditor5/src/core';
+import {Plugin} from 'ckeditor5/src/core';
 
 export default class DrupalMentionUser extends Plugin {
 
@@ -27,7 +27,7 @@ export default class DrupalMentionUser extends Plugin {
 
     // The upcast converter will convert view <a class="mention" href="" data-user-id="">
     // elements to the model 'mention' text attribute.
-    editor.conversion.for( 'upcast' ).elementToAttribute( {
+    editor.conversion.for('upcast').elementToAttribute({
       view: {
         name: 'a',
         key: 'data-mention',
@@ -42,30 +42,30 @@ export default class DrupalMentionUser extends Plugin {
           // The mention feature expects that the mention attribute value
           // in the model is a plain object with a set of additional attributes.
           // In order to create a proper object use the toMentionAttribute() helper method:
-          const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
+          const mentionAttribute = editor.plugins.get('Mention').toMentionAttribute(viewItem, {
             // Add any other properties that you need.
-            link: viewItem.getAttribute( 'href' ),
-            entity_type: viewItem.getAttribute( 'data-entity-type' ),
-            entity_uuid: viewItem.getAttribute( 'data-entity-uuid' ),
-            plugin: viewItem.getAttribute( 'data-plugin' ),
-          } );
+            link: viewItem.getAttribute('href'),
+            entity_type: viewItem.getAttribute('data-entity-type'),
+            entity_uuid: viewItem.getAttribute('data-entity-uuid'),
+            plugin: viewItem.getAttribute('data-plugin'),
+          });
 
           return mentionAttribute;
         }
       },
       converterPriority: 'high'
-    } );
+    });
 
     // Downcast the model 'mention' text attribute to a view <a> element.
-    editor.conversion.for( 'downcast' ).attributeToElement( {
+    editor.conversion.for('downcast').attributeToElement({
       model: 'mention',
-      view: ( modelAttributeValue, { writer } ) => {
+      view: (modelAttributeValue, {writer}) => {
         // Do not convert empty attributes (lack of value means no mention).
-        if ( !modelAttributeValue ) {
+        if (!modelAttributeValue) {
           return;
         }
 
-        return writer.createAttributeElement( 'a', {
+        return writer.createAttributeElement('a', {
           class: 'mention',
           'data-mention': modelAttributeValue.id,
           'data-entity-type': modelAttributeValue.entity_type ?? null,
@@ -77,10 +77,10 @@ export default class DrupalMentionUser extends Plugin {
           priority: 20,
           // Prevent merging mentions together.
           id: modelAttributeValue.uid
-        } );
+        });
       },
       converterPriority: 'high'
-    } );
+    });
   }
 
   /**
