@@ -16,31 +16,48 @@ export default class DrupalMentionUser extends Plugin {
 
   init() {
     const editor = this.editor;
+    const mentionTypeToMakerMap = {};
+    const markerToMentionTypeMap = {};
+    editor.config.get('mention').feeds.forEach((i) => {
+      if (i.drupalMentionsType && i.marker) {
+        mentionTypeToMakerMap[i.drupalMentionsType] = i.marker;
+        markerToMentionTypeMap[i.marker] = i.drupalMentionsType;
+      }
+    });
 
     // The upcast converter will convert <a class="mention" href="" data-entity-id="">
     // elements to the model 'mention' attribute.
-    editor.conversion.for('upcast').elementToAttribute({
+    editor.conversion.for('upcast').elementToElement({
       view: {
         name: 'a',
         key: 'data-mention',
-        classes: 'mention',
         attributes: {
-          href: true,
-          'data-entity-id': true,
-          'data-entity-uuid': true,
+          'data-mention': true,
         }
       },
       model: {
         key: 'mention',
         value: viewItem => {
+          // BC-Layer for older mentions from ckeditor4.
+          let mentionId = viewItem.getAttribute('data-mention');
+          let mentionPlugin = viewItem.getAttribute('data-plugin');
+          let mentionMarker = mentionTypeToMakerMap[mentionPlugin] ?? false;
+          if (mentionPlugin !== null && mentionId !== null && mentionMarker && mentionId.charAt(0) !== mentionMarker) {
+            viewItem._setAttribute('data-mention', mentionMarker + mentionId);
+          }
+          // End BC-Layer
+
+          return viewItem;
+
           // The mention feature expects that the mention attribute value
           // in the model is a plain object with a set of additional attributes.
           // In order to create a proper object, use the toMentionAttribute helper method:
-          const mentionAttribute = editor.plugins.get('Mention').toMentionAttribute(viewItem, {
+          const mentionAttribute = editor.plugins.get('Mention').toMention<Attribute(viewItem, {
             // Add any other properties that you need.
             link: viewItem.getAttribute('href'),
             userId: viewItem.getAttribute('data-entity-id'),
             uuid: viewItem.getAttribute('data-entity-uuid'),
+            mentionsType: viewItem.getAttribute('data-plugin'),
           });
 
           return mentionAttribute;
@@ -58,10 +75,14 @@ export default class DrupalMentionUser extends Plugin {
           return;
         }
 
-        return writer.createAttributeElement('a', {
+        debugger;
+
+        return writer.createContainerElement('a', {
           class: 'mention',
           'data-mention': modelAttributeValue.id,
-          'data-entity-uuid': modelAttributeValue.uuid,
+          'data-entity-uuid': modelAttributeValue.uuid ?? null,
+          'data-plugin': modelAttributeValue.mentionsType ?? null,
+          link: modelAttributeValue.url ?? null,
         }, {
           // Make mention attribute to be wrapped by other attribute elements.
           priority: 20,

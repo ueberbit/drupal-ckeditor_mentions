@@ -81,7 +81,7 @@ class User extends MentionsTypeBase {
         'user_name' => $user->getDisplayName(),
         'email' => $user->getEmail(),
         'avatar' => $user_image_url ?? $this->placeholderImage,
-        'user_page' => $user->toUrl()->toString(),
+        'url' => $user->toUrl()->toString(),
       ];
     }
 

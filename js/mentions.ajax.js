@@ -52,8 +52,9 @@ class ckeditor5DrupalMentionPlugin {
 
   prepareData(items) {
     items.forEach((item) => {
-      item.id = this.options.marker + item.uuid;
+      item.id = this.options.marker + item.entity_id;
       item.text = this.options.marker + item.label;
+      item.plugin = this.options.type;
       return item;
     });
     return items;

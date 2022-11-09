@@ -320,6 +320,7 @@ class Mentions extends CKEditor5PluginDefault implements CKEditor5PluginConfigur
             ],
           ],
           'minimumCharacters' => $this->configuration['charcount'],
+          'drupalMentionsType' => 'user',
         ],
       ],
     ];

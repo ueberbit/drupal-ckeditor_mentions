@@ -182,18 +182,18 @@ class MentionEventDispatcher {
    *   An array with the editors using the mentions plugin.
    */
   public function getTexformatsUsingMentions(): array {
-    $editor_using_mentions = [];
+    $formats_using_mentions = [];
     $editors = $this->entityManager->getStorage('editor')->loadByProperties(['editor' => 'ckeditor5']);
-    /** @var \Drupal\ckeditor_mentions\Plugin\CKEditor5Plugin\Mentions $mentions_plugin */
-    $mentions_plugin = $this->ckeditorPluginManager->createInstance('ckeditor_mentions_mentions');
+
     /** @var \Drupal\editor\Entity\Editor $editor */
     foreach ($editors as $editor) {
-      if ($mentions_plugin->isEnabled($editor)) {
-        $editor_using_mentions[] = $editor->id();
+      $editorSettings = $editor->getSettings();
+      if ($editorSettings['plugins']['ckeditor_mentions_mentions']['enable'] ?? FALSE) {
+        $formats_using_mentions[] = $editor->getFilterFormat()->id();
       }
     }
 
-    return $editor_using_mentions;
+    return $formats_using_mentions;
   }
 
   /**
@@ -238,7 +238,7 @@ class MentionEventDispatcher {
       $entity_id = $anchor->getAttribute('data-mention');
       $plugin_id = $anchor->getAttribute('data-plugin');
 
-      if (empty($entity_id)) {
+      if (empty($entity_id) || empty($plugin_id)) {
         continue;
       }
 

@@ -93,6 +93,8 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
     $result = [];
     foreach ($entities as $id => $entity) {
       if ($entity instanceof EntityInterface) {
+        $result[$id]['entity_type'] = $entity->getEntityTypeId();
+        $result[$id]['entity_id'] = $entity->id();
         $result[$id]['uuid'] = $entity->uuid();
         $result[$id]['label'] = $entity->label();
       }
