@@ -235,7 +235,7 @@ class MentionEventDispatcher {
     $anchors = $dom->getElementsByTagName('a');
     foreach ($anchors as $anchor) {
       $plugin = NULL;
-      $entity_id = $anchor->getAttribute('data-mention');
+      $entity_id = $anchor->getAttribute('data-entity-id');
       $plugin_id = $anchor->getAttribute('data-plugin');
 
       if (empty($entity_id) || empty($plugin_id)) {
