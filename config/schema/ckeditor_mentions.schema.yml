@@ -2,6 +2,19 @@ ckeditor5.plugin.ckeditor_mentions_mentions:
   type: config_object
   label: 'CKE Mention Settings'
   mapping:
+    plugins:
+      type: sequence
+      label: 'Mentions plugin settings'
+      sequence:
+        type: ckeditor5.plugin.ckeditor_mentions_mentions.plugin
+
+ckeditor5.plugin.ckeditor_mentions_mentions.plugin:
+  type: mapping
+  label: 'Mentions plugin settings'
+  mapping:
+    id:
+      type: string
+      label: 'Plugin ID'
     enable:
       type: boolean
       label: 'Status'
