@@ -47,7 +47,7 @@ export default class DrupalMentionUser extends Plugin {
             // Add any other properties that you need.
             link: viewItem.getAttribute('href'),
             entity_type: viewItem.getAttribute('data-entity-type'),
-            entity_uuid: viewItem.getAttribute('data-entity-uuid'),
+            uuid: viewItem.getAttribute('data-entity-uuid'),
             plugin: viewItem.getAttribute('data-plugin'),
           });
 
