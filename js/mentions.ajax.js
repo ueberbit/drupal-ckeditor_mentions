@@ -9,27 +9,6 @@ Drupal.ckeditor5DrupalMention = function (options) {
 Drupal.ckeditor5DrupalMentionUser = {
   itemRenderer(item) {
     return item.text;
-
-
-    /*
-    const itemElement = document.createElement('span');
-
-    itemElement.classList.add('custom-item');
-    itemElement.id = `@${item.id}`;
-    itemElement.textContent = `${item.label} `;
-
-    return itemElement;
-
-    /*
-    const usernameElement = document.createElement('span');
-
-    usernameElement.classList.add('custom-item-username');
-    usernameElement.textContent = item.id;
-
-    itemElement.appendChild(usernameElement);
-
-    return itemElement;
-    */
   }
 };
 
@@ -54,6 +33,7 @@ class ckeditor5DrupalMentionPlugin {
     items.forEach((item) => {
       item.id = this.options.marker + item.entity_id;
       item.text = this.options.marker + item.label;
+      item.link = item.url ?? "";
       item.plugin = this.options.type;
       return item;
     });
