@@ -40,6 +40,15 @@ export default class DrupalMentionUser extends Plugin {
       model: {
         key: 'mention',
         value: viewItem => {
+          // BC-Layer for older mentions from ckeditor4.
+          let mentionId = viewItem.getAttribute('data-mention');
+          let mentionPlugin = viewItem.getAttribute('data-plugin');
+          let mentionMarker = mentionTypeToMakerMap[mentionPlugin] ?? false;
+          if (mentionPlugin !== null && mentionId !== null && mentionMarker && mentionId.charAt(0) !== mentionMarker) {
+            viewItem._setAttribute('data-mention', mentionMarker + mentionId);
+          }
+          // End BC-Layer
+
           // The mention feature expects that the mention attribute value
           // in the model is a plain object with a set of additional attributes.
           // In order to create a proper object use the toMentionAttribute() helper method:
