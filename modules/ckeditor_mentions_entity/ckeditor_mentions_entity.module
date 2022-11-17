@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Ckeditor Mentions Entity module.
+ */
+
+use Drupal\ckeditor_mentions_entity\Entity\Mention;
+use Drupal\ckeditor_mentions_entity\MentionInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\paragraphs\ParagraphInterface;
+
+/**
+ * Wrapper function collecting mentions from entities.
+ */
+function _ckeditor_mentions_entity_collect_mentions(ContentEntityInterface $entity) {
+  /** @var \Drupal\ckeditor_mentions\MentionEventDispatcher $service */
+  $service = \Drupal::service('ckeditor_mentions.mention_event_dispatcher');
+  $mentions = [];
+
+  foreach ($service->getMentionsFromEntity($entity) as $mention) {
+    /** @var \DOMElement $anchor */
+    $anchor = $mention['anchor'];
+    /** @var \Drupal\Core\Entity\ContentEntityInterface $target */
+    $target = $mention['entity'];
+
+    if ($target instanceof ParagraphInterface) {
+      $target = $target->getParentEntity();
+    }
+
+    if ($uuid = $anchor->getAttribute('data-mention-uuid')) {
+      $mentions[$uuid] = $target;
+    }
+  }
+
+  return $mentions;
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function ckeditor_mentions_entity_entity_insert(EntityInterface $entity) {
+  if (($entity instanceof ContentEntityInterface) && !($entity instanceof MentionInterface)) {
+    if (!$entity->isDefaultRevision()) {
+      return;
+    }
+
+    $account = \Drupal::currentUser();
+    $mentions = _ckeditor_mentions_entity_collect_mentions($entity);
+
+    foreach ($mentions as $uuid => $target_entity) {
+      $mention_entity = Mention::create(['uuid' => $uuid]);
+      $mention_entity->set('langcode', $entity->language()->getId())
+        ->setOwnerId($account->id())
+        ->setParentEntity($entity)
+        ->setTargetEntity($target_entity)
+        ->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function ckeditor_mentions_entity_entity_update(EntityInterface $entity) {
+  if (($entity instanceof ContentEntityInterface) && !($entity instanceof MentionInterface)) {
+    if (!$entity->isDefaultRevision()) {
+      return;
+    }
+
+    /** @var \Drupal\Core\Entity\EntityRepositoryInterface $repository */
+    $repository = \Drupal::service('entity.repository');
+    $account = \Drupal::currentUser();
+
+    $mentions_current = _ckeditor_mentions_entity_collect_mentions($entity);
+    $mentions_original = _ckeditor_mentions_entity_collect_mentions($entity->original);
+
+    $mentions_added = array_diff_key($mentions_current, $mentions_original);
+    $mentions_removed = array_diff_key($mentions_original, $mentions_current);
+
+    foreach ($mentions_added as $uuid => $target_entity) {
+      $mention_entity = Mention::create(['uuid' => $uuid]);
+      $mention_entity->set('langcode', $entity->language()->getId())
+        ->setOwnerId($account->id())
+        ->setParentEntity($entity)
+        ->setTargetEntity($target_entity)
+        ->save();
+    }
+
+    foreach ($mentions_removed as $uuid => $target_entity) {
+      $mention_entity = $repository->loadEntityByUuid('mention', $uuid);
+
+      if (isset($mention_entity)) {
+        $mention_entity->delete();
+      }
+    }
+  }
+}

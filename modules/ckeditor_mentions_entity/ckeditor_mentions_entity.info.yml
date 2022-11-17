@@ -1,0 +1,8 @@
+core_version_requirement: ^9 || ^10
+dependencies:
+  - ckeditor_mentions:ckeditor_mentions
+  - dynamic_entity_reference:dynamic_entity_reference
+description: 'Provides a content entity type for storing mentions.'
+name: 'CKEditor Mentions Entity'
+package: CKEditor
+type: module
