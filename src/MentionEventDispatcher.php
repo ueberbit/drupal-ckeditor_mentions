@@ -9,6 +9,7 @@ use Drupal\ckeditor_mentions\Events\CKEditorMentionsEvent;
 use Drupal\ckeditor_mentions\MentionsType\MentionsTypeManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -86,7 +87,8 @@ class MentionEventDispatcher {
       EventDispatcherInterface $event_dispatcher,
       EntityTypeManagerInterface $entityTypeManager,
       MentionsTypeManagerInterface $mentionsTypeManager,
-      CKEditor5PluginManager $ckeditor_plugin_manager) {
+      CKEditor5PluginManager $ckeditor_plugin_manager,
+      protected EntityRepositoryInterface $entityRepository) {
     $this->configFactory = $config_factory;
     $this->currentUser = $current_user;
     $this->eventDispatcher = $event_dispatcher;
@@ -165,9 +167,18 @@ class MentionEventDispatcher {
       $field_value = $entity->get($field_name)->getValue();
       foreach ($field_value as $key => $item) {
         if (isset($item['format']) && in_array($item['format'], $format_using_mentions)) {
-          foreach ($this->getMentionedEntities($item['value']) as $id => $mentioned_entity_information) {
-            $mentioned_entities[$id][$field_name]['delta'][$key] = $key;
-            $mentioned_entities[$id] += $mentioned_entity_information;
+          foreach ($this->getMentionedEntities($item['value']) as $mentioned_entity_information) {
+            $mentioned_item = [
+              'field_info' => [
+                $field_name => [
+                  'delta' => [
+                    $key => $key,
+                  ]
+                ]
+              ]
+            ];
+            $mentioned_item += $mentioned_entity_information;
+            $mentioned_entities[] = $mentioned_item;
           }
         }
       }
@@ -188,8 +199,10 @@ class MentionEventDispatcher {
     /** @var \Drupal\editor\Entity\Editor $editor */
     foreach ($editors as $editor) {
       $editorSettings = $editor->getSettings();
-      if ($editorSettings['plugins']['ckeditor_mentions_mentions']['enable'] ?? FALSE) {
-        $formats_using_mentions[] = $editor->getFilterFormat()->id();
+      foreach ($editorSettings['plugins']['ckeditor_mentions_mentions']['plugins'] ?? [] as $plugin) {
+        if ($plugin['enable'] ?? FALSE) {
+          $formats_using_mentions[] = $editor->getFilterFormat()->id();
+        }
       }
     }
 
@@ -234,28 +247,24 @@ class MentionEventDispatcher {
 
     $anchors = $dom->getElementsByTagName('a');
     foreach ($anchors as $anchor) {
+      /** @var @TODO: BC LAYER, with data-entity-id **/
       $plugin = NULL;
-      $entity_id = $anchor->getAttribute('data-entity-id');
+      $entity_uuid = $anchor->getAttribute('data-entity-uuid');
       $plugin_id = $anchor->getAttribute('data-plugin');
 
-      if (empty($entity_id) || empty($plugin_id)) {
+      if (empty($entity_uuid) || empty($plugin_id)) {
         continue;
       }
 
       /** @var \Drupal\ckeditor_mentions\MentionsType\MentionsTypeBase $plugin */
       $plugin = $plugins[$plugin_id] = $plugins[$plugin_id] ?? $this->mentionsTypeManager->createInstance($plugin_id);
 
-      $mentioned_entities[$entity_id] = [
-        'id' => $entity_id,
+      $mentioned_entities[] = [
+        'anchor' => $anchor,
         'plugin' => $plugin,
-        'entity' => $this->entityManager->getStorage($plugin->getPluginDefinition()['entity_type'])->load($entity_id),
+        'entity' => $this->entityRepository->loadEntityByUuid($plugin->getPluginDefinition()['entity_type'], $entity_uuid),
+        'entity_uuid' => $entity_uuid,
       ];
-
-      // For backward compatibility add uid.
-      // @todo Remove in 3.0.
-      if ($plugin->getPluginId() == 'realname') {
-        $mentioned_entities[$entity_id]['uid'] = $entity_id;
-      }
     }
 
     return $mentioned_entities;

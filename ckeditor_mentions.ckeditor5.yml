@@ -7,4 +7,4 @@ ckeditor_mentions_user:
     library: ckeditor_mentions/mentions.user
     elements:
       - <a>
-      - <a class data-mention data-entity-id data-entity-uuid data-plugin href>
+      - <a class data-mention data-mention-uuid data-entity-id data-entity-uuid data-plugin href>

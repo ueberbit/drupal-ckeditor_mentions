@@ -8,6 +8,7 @@ use Drupal\ckeditor_mentions\Events\CKEditorEvents;
 use Drupal\ckeditor_mentions\Exception\MatchIsMissingException;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Database\Query\AlterableInterface;
 use Drupal\Core\Database\Query\SelectInterface;
@@ -61,7 +62,8 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
     EntityTypeManagerInterface $entityTypeManager,
     Connection $database,
     EventDispatcherInterface $eventDispatcher,
-    RendererInterface $renderer
+    RendererInterface $renderer,
+    protected UuidInterface $uuid,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityManager = $entityTypeManager;
@@ -82,7 +84,8 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
       $container->get('entity_type.manager'),
       $container->get('database'),
       $container->get('event_dispatcher'),
-      $container->get('renderer')
+      $container->get('renderer'),
+      $container->get('uuid')
     );
   }
 
@@ -95,10 +98,10 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
       if ($entity instanceof EntityInterface) {
         $result[$id]['entity_type'] = $entity->getEntityTypeId();
         $result[$id]['entity_id'] = $entity->id();
-        $result[$id]['uuid'] = $entity->uuid();
+        $result[$id]['entity_uuid'] = $entity->uuid();
         $result[$id]['label'] = $entity->label();
+        $result[$id]['mention_uuid'] = $this->uuid->generate();
       }
-
     }
     return $result;
   }

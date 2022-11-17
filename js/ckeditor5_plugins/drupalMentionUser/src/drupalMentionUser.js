@@ -47,7 +47,8 @@ export default class DrupalMentionUser extends Plugin {
             // Add any other properties that you need.
             link: viewItem.getAttribute('href'),
             entity_type: viewItem.getAttribute('data-entity-type'),
-            uuid: viewItem.getAttribute('data-entity-uuid'),
+            entity_uuid: viewItem.getAttribute('data-entity-uuid'),
+            mention_uuid: viewItem.getAttribute('data-mention-uuid'),
             plugin: viewItem.getAttribute('data-plugin'),
           });
 
@@ -69,8 +70,9 @@ export default class DrupalMentionUser extends Plugin {
         return writer.createAttributeElement('a', {
           class: 'mention',
           'data-mention': modelAttributeValue.id,
+          'data-mention-uuid': modelAttributeValue.mention_uuid ?? null,
           'data-entity-type': modelAttributeValue.entity_type ?? null,
-          'data-entity-uuid': modelAttributeValue.uuid ?? null,
+          'data-entity-uuid': modelAttributeValue.entity_uuid ?? null,
           'data-plugin': modelAttributeValue.plugin ?? null,
           'href': modelAttributeValue.link ?? null,
         }, {
