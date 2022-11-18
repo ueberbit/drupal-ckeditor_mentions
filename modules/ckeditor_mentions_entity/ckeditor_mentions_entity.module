@@ -38,6 +38,36 @@ function _ckeditor_mentions_entity_collect_mentions(ContentEntityInterface $enti
 }
 
 /**
+ * Implements hook_entity_delete().
+ */
+function ckeditor_mentions_entity_entity_delete(EntityInterface $entity) {
+  if (($entity instanceof ContentEntityInterface) && !($entity instanceof MentionInterface)) {
+    $storage = \Drupal::entityTypeManager()->getStorage('mention');
+    $query = $storage->getQuery('OR');
+    $type = $entity->getEntityTypeId();
+
+    $condition_parent = $query->andConditionGroup()
+      ->condition('parent.target_id', $entity->id())
+      ->condition('parent.target_type', $type);
+
+    $condition_target = $query->andConditionGroup()
+      ->condition('target.target_id', $entity->id())
+      ->condition('target.target_type', $type);
+
+    if ($type == 'user') {
+      $query->condition('uid', $entity->id());
+    }
+
+    $ids = $query->condition($condition_parent)
+      ->condition($condition_target)
+      ->execute();
+    $mentions = $storage->loadMultiple($ids);
+
+    $storage->delete($mentions);
+  }
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function ckeditor_mentions_entity_entity_insert(EntityInterface $entity) {
