@@ -43,7 +43,7 @@ function _ckeditor_mentions_entity_collect_mentions(ContentEntityInterface $enti
 function ckeditor_mentions_entity_entity_delete(EntityInterface $entity) {
   if (($entity instanceof ContentEntityInterface) && !($entity instanceof MentionInterface)) {
     $storage = \Drupal::entityTypeManager()->getStorage('mention');
-    $query = $storage->getQuery('OR');
+    $query = $storage->getQuery('OR')->accessCheck(FALSE);
     $type = $entity->getEntityTypeId();
 
     $condition_parent = $query->andConditionGroup()
