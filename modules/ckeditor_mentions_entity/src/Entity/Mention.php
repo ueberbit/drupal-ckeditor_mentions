@@ -2,11 +2,11 @@
 
 namespace Drupal\ckeditor_mentions_entity\Entity;
 
+use Drupal\ckeditor_mentions_entity\MentionInterface;
 use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\ckeditor_mentions_entity\MentionInterface;
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\user\EntityOwnerTrait;
 
 /**

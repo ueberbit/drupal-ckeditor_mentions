@@ -2,7 +2,6 @@
 
 namespace Drupal\ckeditor_mentions;
 
-use Drupal\ckeditor\CKEditorPluginManager;
 use Drupal\ckeditor5\Plugin\CKEditor5PluginManager;
 use Drupal\ckeditor_mentions\Events\CKEditorEvents;
 use Drupal\ckeditor_mentions\Events\CKEditorMentionsEvent;
@@ -116,14 +115,14 @@ class MentionEventDispatcher {
     // @todo Remove in 3.0
     foreach ($mentioned_entities as $mentioned_entity) {
       $event = new CKEditorMentionsEvent($entity, $mentioned_entity['entity'], $mentioned_entity['plugin'], $mentioned_entity);
-      $dispatcher->dispatch($event_name, $event);
+      $dispatcher->dispatch($event);
 
       $legacy_event_name = $event_name === CKEditorEvents::MENTION_FIRST ? CKEditorMentionEvent::MENTION_FIRST : CKEditorMentionEvent::MENTION_SUBSEQUENT;
       $legacy_event = new CKEditorMentionEvent($event->getEntity(), [
         'entity' => $event->getMentionedEntity(),
         'plugin' => $event->getPlugin(),
       ] + $event->getAdditionalInformation());
-      $dispatcher->dispatch($legacy_event_name, $legacy_event);
+      $dispatcher->dispatch($legacy_event);
     }
   }
 

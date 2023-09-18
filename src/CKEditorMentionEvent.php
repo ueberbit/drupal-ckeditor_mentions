@@ -6,7 +6,7 @@ namespace Drupal\ckeditor_mentions;
 use Drupal\ckeditor_mentions\Events\CKEditorMentionEventInterface;
 use Drupal\ckeditor_mentions\MentionsType\MentionsTypeInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Class provide the mention event.

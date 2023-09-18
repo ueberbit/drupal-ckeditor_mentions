@@ -4,7 +4,6 @@ namespace Drupal\ckeditor_mentions\MentionsType;
 
 use Drupal\ckeditor_mentions\CKEditorMentionSuggestionEvent;
 use Drupal\ckeditor_mentions\Events\CKEditorMentionSuggestionsEvent;
-use Drupal\ckeditor_mentions\Events\CKEditorEvents;
 use Drupal\ckeditor_mentions\Exception\MatchIsMissingException;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Component\Utility\NestedArray;
@@ -186,11 +185,11 @@ abstract class MentionsTypeBase extends PluginBase implements MentionsTypeInterf
    */
   protected function dispatchSuggestionsEvent(array $suggestions): array {
     $suggestion_event = new CKEditorMentionSuggestionsEvent($this->getMatch(), $suggestions);
-    $this->eventDispatcher->dispatch(CKEditorEvents::SUGGESTION, $suggestion_event);
+    $this->eventDispatcher->dispatch($suggestion_event);
     // @todo Remove in 3.0
     $suggestion_event_legacy = new CKEditorMentionSuggestionEvent($this->getMatch());
     $suggestion_event_legacy->setSuggestions($suggestion_event->getSuggestions());
-    $this->eventDispatcher->dispatch(CKEditorMentionSuggestionEvent::SUGGESTION, $suggestion_event);
+    $this->eventDispatcher->dispatch($suggestion_event);
 
     return $suggestion_event_legacy->getSuggestions();
   }
