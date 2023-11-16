@@ -24,6 +24,9 @@ ckeditor5.plugin.ckeditor_mentions_mentions.plugin:
     charcount:
       type: integer
       label: 'Characters count'
+    dropdownLimit:
+      type: integer
+      label: 'dropdownLimit'
     timeout:
       type: integer
       label: 'Timeout'

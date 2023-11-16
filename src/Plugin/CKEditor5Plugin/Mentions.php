@@ -136,6 +136,20 @@ class Mentions extends CKEditor5PluginDefault implements CKEditor5PluginConfigur
         ],
       ];
 
+      $form['plugins'][$mentionsType]['dropdownLimit'] = [
+        '#type' => 'number',
+        '#min' => 1,
+        '#title' => $this->t('Dropdown limit'),
+        '#description' => $this->t('Specify how many available elements the users be able to see in the dropdown list.'),
+        '#default_value' => !empty($settings['plugins'][$mentionsType]['dropdownLimit']) ? $settings['plugins'][$mentionsType]['dropdownLimit'] : 10,
+        '#states' => [
+          'visible' => [
+            ':input[data-use-advanced--' . $mentionsType . ']' => ['checked' => FALSE],
+            ':input[data-use-mentions--' . $mentionsType . ']' => ['checked' => TRUE],
+          ],
+        ],
+      ];
+
       $form['plugins'][$mentionsType]['use_advanced_pattern'] = [
         '#type' => 'checkbox',
         '#title' => $this->t('Use advanced pattern?'),
@@ -210,6 +224,7 @@ class Mentions extends CKEditor5PluginDefault implements CKEditor5PluginConfigur
         $mentionsTypeConfiguration['id'] = $mentionsType;
         $mentionsTypeConfiguration['enable'] = (bool) $mentionsTypeConfiguration['enable'];
         $mentionsTypeConfiguration['charcount'] = (int) $mentionsTypeConfiguration['charcount'];
+        $mentionsTypeConfiguration['dropdownLimit'] = (int) $mentionsTypeConfiguration['dropdownLimit'];
         $mentionsTypeConfiguration['timeout'] = (int) $mentionsTypeConfiguration['timeout'];
         $mentionsTypeConfiguration['use_advanced_pattern'] = (bool) $mentionsTypeConfiguration['use_advanced_pattern'];
         $configuration[$mentionsType] = $mentionsTypeConfiguration;
@@ -248,6 +263,7 @@ class Mentions extends CKEditor5PluginDefault implements CKEditor5PluginConfigur
         ],
         'minimumCharacters' => $settings['charcount'],
         'drupalMentionsType' => $settings['id'],
+        'dropdownLimit' => $settings['dropdownLimit'],
       ];
     }
 
