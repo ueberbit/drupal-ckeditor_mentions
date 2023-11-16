@@ -14,7 +14,6 @@ ckeditor.plugin.mention:
     /libraries/ckeditor/plugins/mentions/mention.js: {}
   dependencies:
     - ckeditor5/ckeditor5
-    - ckeditor_mentions/mentions
     - ckeditor_mentions/mentions.ajax
 
 mentions.user:
