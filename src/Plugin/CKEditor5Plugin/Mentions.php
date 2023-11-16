@@ -243,7 +243,7 @@ class Mentions extends CKEditor5PluginDefault implements CKEditor5PluginConfigur
         ],
         'itemRenderer' => [
           'func' => [
-            'name' => 'Drupal.ckeditor5DrupalMentionUser.itemRenderer',
+            'name' => 'Drupal.ckeditor5DrupalMentionItemRenderer',
           ],
         ],
         'minimumCharacters' => $settings['charcount'],

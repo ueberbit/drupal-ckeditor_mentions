@@ -6,10 +6,8 @@ Drupal.ckeditor5DrupalMention = function (options) {
   }
 }
 
-Drupal.ckeditor5DrupalMentionUser = {
-  itemRenderer(item) {
-    return item.text;
-  }
+Drupal.ckeditor5DrupalMentionItemRenderer = function (item) {
+  return item.text;
 };
 
 class ckeditor5DrupalMentionPlugin {
