@@ -17,16 +17,17 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @CKEditor5Plugin(
  *   id = "ckeditor_mentions_mentions",
  *   ckeditor5 = @CKEditor5AspectsOfCKEditor5Plugin(
- *   plugins = {
- *     "mention.Mention"
- *   }
+ *     plugins = {
+ *       "mention.Mention"
+ *     }
  *   ),
  *   drupal = @DrupalAspectsOfCKEditor5Plugin(
  *     label = @Translation("Mentions"),
  *     library = "ckeditor_mentions/ckeditor.plugin.mention",
  *     elements = {
- *      "<span>"
- *       }
+ *       "<a>",
+ *       "<a class data-mention data-mention-uuid data-entity-id data-entity-uuid data-plugin href>"
+ *     }
  *   )
  * )
  */
