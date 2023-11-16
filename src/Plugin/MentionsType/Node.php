@@ -31,29 +31,6 @@ class Node extends MentionsTypeBase {
 
   /**
    * {@inheritDoc}
-   *
-   * @param \Drupal\node\NodeInterface[] $entities
-   *   Entities.
-   */
-  public function buildTokens(array $entities): array {
-    $response_array = [];
-
-    foreach ($entities as $id => $node) {
-      $response_array[$id] = [
-        'id' => $node->id(),
-        'name' => $node->uuid(),
-        'title' => $node->getTitle(),
-        'node_page' => $node->toUrl()->toString(),
-      ];
-    }
-
-    $this->dispatchSuggestionsEvent($response_array);
-
-    return $response_array;
-  }
-
-  /**
-   * {@inheritDoc}
    */
   protected function outputTemplate() {
     $output = parent::outputTemplate();
