@@ -49,7 +49,7 @@ class Node extends MentionsTypeBase {
 
     $this->dispatchSuggestionsEvent($response_array);
 
-    return array_values($response_array);
+    return $response_array;
   }
 
   /**

@@ -85,7 +85,7 @@ class User extends MentionsTypeBase {
       ];
     }
 
-    return array_values($response_array);
+    return $response_array;
   }
 
   /**

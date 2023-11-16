@@ -58,7 +58,11 @@ class CKMentionsController extends ControllerBase {
       'match' => $match,
     ]);
 
-    return new JsonResponse($plugin->buildResponse());
+    // Convert the result to an array, the CKEditor5 JS Plugin can't iterate
+    // over the results otherwise.
+    $response = array_values($plugin->buildResponse());
+
+    return new JsonResponse($response);
   }
 
 }
