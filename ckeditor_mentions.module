@@ -26,18 +26,6 @@ function ckeditor_mentions_entity_insert(EntityInterface $entity) {
 }
 
 /**
- * Implements hook_library_info_alter().
- *
- * Make sure that mentions script will be loaded before ckeditor will
- * initialize editor instance.
- */
-function ckeditor_mentions_library_info_alter(&$libraries, $extension) {
-  if ($extension === 'ckeditor' && isset($libraries['drupal.ckeditor'])) {
-    $libraries['drupal.ckeditor']['dependencies'][] = 'ckeditor_mentions/mentions';
-  }
-}
-
-/**
  * Implements hook_help().
  */
 function ckeditor_mentions_help($route_name) {
